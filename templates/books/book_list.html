@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Book List{% endblock %}
+
+{% block content %}
+<h1>Book List</h1>
+
+<table class="table">
+    <thead>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Date Published</th>
+        <th>ISBN</th>
+        <th></th>
+        <th></th>
+        <th></th>
+    </thead>
+
+    <tbody>
+        {% for book in object_list %}
+        <tr>
+            <td>{{ book.name }}</td>
+            <td>{{ book.author.name }}</td>
+            <td>{{ book.published }}</td>
+            <td>{{ book.isbn }}</td>
+            <td><span class="icon has-text-info"><i class="fas fa-plus-circle"></i></span></td>
+            <td><span class="icon has-text-success"><i class="fas fa-edit"></i></span></td>
+            <td><span class="icon has-text-danger"><i class="fas fa-minus-circle"></i></span></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

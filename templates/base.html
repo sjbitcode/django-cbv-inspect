@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+    <title>{% block title %}{% endblock %}</title>
+    {% block styles %}
+    {% endblock %}
+</head>
+
+<body>
+
+    <section class="section">
+        <div class="container">
+            <div class="content">
+                <h1 class="title">The Django Book Store ✨📗</h1>
+                <p class="subtitle">A project to introspect CBV's</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="content">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </section>
+
+</body>
+
+{% block scripts %}
+{% endblock %}
+
+</html>
