@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Book List{% endblock %}
+
+{% block content %}
+
+<div class="box">
+    <h3>{{ object.name }}</h3>
+    <p>{{ object.author.name }}</p>
+    <p>{{ object.published }}</p>
+    <p>{{ object.isbn }}</p>
+</div>
+
+<div class="buttons">
+    <button class="button is-success">Edit Book</button>
+    <button class="button is-danger">Delete Book</button>
+</div>
+
+{% endblock %}

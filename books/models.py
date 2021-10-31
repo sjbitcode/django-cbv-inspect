@@ -3,6 +3,7 @@ import string
 
 from django.db import models
 from django.db.models.signals import pre_save
+from django.urls import reverse
 
 
 # Create a digit with of length x
@@ -17,6 +18,9 @@ class Book(models.Model):
 
     def __str__(self) -> str:
         return f"Book <{self.name[:50]}>"
+
+    def get_absolute_url(self):
+        return reverse("book_detail", kwargs={"pk": self.pk})
 
 
 class Author(models.Model):
