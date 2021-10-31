@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Book List{% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+
+    <div class="field">
+        <p class="control">
+            <button class="button is-danger" type="submit">Confirm</button>
+        </p>
+    </div>
+
+</form>
+
+{% endblock %}
+
+

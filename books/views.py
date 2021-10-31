@@ -33,6 +33,11 @@ class BookUpdateView(UpdateView):
         return reverse_lazy("book_detail", kwargs={"pk": self.object.pk})
 
 
+class BookDeleteView(DeleteView):
+    model = Book
+    success_url = reverse_lazy("books")
+
+
 class AuthorCreateView(CreateView):
     model = Author
     form_class = AuthorForm
