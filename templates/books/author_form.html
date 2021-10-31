@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Author Create{% endblock %}
+
+{% block content %}
+
+<h1>Create Author</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="columns">
+        <div class="column is-half">
+            <div class="field">
+                <label class="label">First Name</label>
+                <div class="control">
+                    <input class="input" type="text" name="{{ form.first_name.name }}" placeholder="J.K.">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Last Name</label>
+                <div class="control">
+                    <input class="input" type="text" name="{{ form.last_name.name }}" placeholder="Rowling">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <button class="button is-link" type="submit">Create Author</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+{% endblock %}

@@ -6,8 +6,10 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
+from django.urls import reverse_lazy
 
-from .models import Book
+from .forms import AuthorForm, BookForm
+from .models import Author, Book
 
 
 class BookListView(ListView):
@@ -16,3 +18,22 @@ class BookListView(ListView):
 
 class BookDetailView(DetailView):
     model = Book
+
+
+class BookCreateView(CreateView):
+    model = Book
+    form_class = BookForm
+
+
+class BookUpdateView(UpdateView):
+    model = Book
+    form_class = BookForm
+
+    def get_success_url(self) -> str:
+        return reverse_lazy("book_detail", kwargs={"pk": self.object.pk})
+
+
+class AuthorCreateView(CreateView):
+    model = Author
+    form_class = AuthorForm
+    success_url = reverse_lazy("books")
