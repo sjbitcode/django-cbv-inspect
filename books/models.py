@@ -17,7 +17,7 @@ class Book(models.Model):
     isbn = models.CharField(max_length=17, blank=True)
 
     def __str__(self) -> str:
-        return f"Book <{self.name[:50]}>"
+        return self.name
 
     def get_absolute_url(self):
         return reverse("book_detail", kwargs={"pk": self.pk})
@@ -32,7 +32,7 @@ class Author(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def __str__(self) -> str:
-        return f"Author <{self.name}>"
+        return self.name
 
 
 def generate_isbn(sender, instance, *args, **kwargs):

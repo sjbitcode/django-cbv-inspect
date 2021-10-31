@@ -11,9 +11,16 @@
     <p>{{ object.isbn }}</p>
 </div>
 
-<div class="buttons">
-    <button class="button is-success">Edit Book</button>
-    <button class="button is-danger">Delete Book</button>
+<div class="field is-grouped">
+    <p class="control">
+        <a href="{% url 'book_edit' object.pk %}">
+            <button class="button is-success">Edit Book</button>
+        </a>
+    </p>
+    <p class="control">
+        <a href="#">
+            <button class="button is-danger">Delete Book</button>
+        </a>
+    </p>
 </div>
-
 {% endblock %}
