@@ -38,7 +38,9 @@
                 </a>
             </td>
             <td>
-                <span class="icon has-text-danger"><i class="fas fa-minus-circle"></i></span>
+                <a href="{% url 'book_delete' book.pk %}">
+                    <span class="icon has-text-danger"><i class="fas fa-minus-circle"></i></span>
+                </a>
             </td>
         </tr>
         {% endfor %}
