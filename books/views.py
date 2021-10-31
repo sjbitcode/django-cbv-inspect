@@ -12,3 +12,7 @@ from .models import Book
 
 class BookListView(ListView):
     model = Book
+
+
+class BookDetailView(DetailView):
+    model = Book

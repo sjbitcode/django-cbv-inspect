@@ -19,7 +19,11 @@
     <tbody>
         {% for book in object_list %}
         <tr>
-            <td>{{ book.name }}</td>
+            <td>
+                <a href="{{ book.get_absolute_url }}">
+                    {{ book.name }}
+                </a>
+            </td>
             <td>{{ book.author.name }}</td>
             <td>{{ book.published }}</td>
             <td>{{ book.isbn }}</td>
