@@ -26,62 +26,28 @@ from .models import Author, Book
 #     func.__init__ = decorator__init
 #     return decorator__init
 
-
-def time_this(func):
-    def wrapped(*args, **kwargs):
-        print("_________timer starts_________")
-        from datetime import datetime
-
-        before = datetime.now()
-        x = func(*args, **kwargs)
-        after = datetime.now()
-        print("** elapsed Time = {0} **\n".format(after - before))
-        return x
-
-    return wrapped
-
-
-def time_all_class_methods(Cls):
-    # decoration body - doing nothing really since we need to wait until the decorated object is instantiated
-    class Wrapper:
-        def __init__(self, *args, **kwargs):
-            print(f"__init__() called with args: {args} and kwargs: {kwargs}")
-            self.decorated_obj = Cls(*args, **kwargs)
-
-        def __getattribute__(self, s):
-            try:
-                x = super().__getattribute__(s)
-                return x
-            except AttributeError:
-                pass
-            x = self.decorated_obj.__getattribute__(s)
-            if type(x) == type(self.__init__):  # it is an instance method
-                print(f"attribute belonging to decorated_obj: {x.__qualname__}")
-                return time_this(
-                    x
-                )  # this is equivalent of just decorating the method with time_this
-            else:
-                return x
-
-    return Wrapper  # decoration ends here
-
-
 INSPECT_LOGS = {}
 
+# import sys
 
-class FunctionLog:
-    def __init__(self):
-        self.tab_index = 0
-        self.ordering = 0
-        self.args = ()
-        self.kwargs = {}
-        self.name = None
-        self.ret_value = None
+
+# def trace(frame, event, arg):
+#     if event == "call":
+#         filename = frame.f_code.co_filename
+#         if filename == "/path/to/file":
+#             lineno = frame.f_lineno
+#             # Here I'm printing the file and line number,
+#             # but you can examine the frame, locals, etc too.
+#             print("%s @ %s" % (filename, lineno))
+#     return trace
+
+
+# sys.settrace(trace)
+# sys.settrace(None)
 
 
 class InspectorMixin:
     tab_index = 0
-    func_order = 0
 
     @property
     def get_whitelisted_callables(self):
@@ -102,7 +68,6 @@ class InspectorMixin:
             and attr.__name__ in self.get_whitelisted_callables
         ):
             tab = "\t"
-            f = FunctionLog()
 
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
@@ -113,28 +78,14 @@ class InspectorMixin:
                 # print(inspect.getsource(attr))
                 # print(inspect.getframeinfo(inspect.currentframe()).function)
                 self.tab_index += 1
-                self.func_order += 1
-                f.ordering = self.func_order
-
-                print(f"{tab*self.tab_index} FUNC ORDER --> ", self.func_order)
 
                 res = attr(*args, **kwargs)
                 print(
                     f"{tab*self.tab_index} Result of {attr.__qualname__} call is {res}"
                 )
 
-                # Update function log
-                f.name = attr.__qualname__
-                f.tab_index = self.tab_index
-                f.args = args
-                f.kwargs = kwargs
-                f.ret_value = res
-
-                global INSPECT_LOGS
-                INSPECT_LOGS[f.ordering] = f
-
                 self.tab_index -= 1
-                print(f"{tab*self.tab_index} After calling {attr.__qualname__}\n")
+                print(f"{tab*self.tab_index} After calling {attr.__qualname__}")
                 return res
 
             return wrapper
@@ -150,16 +101,11 @@ class InspectorMixin:
 class BookListView(InspectorMixin, ListView):
     model = Book
 
-    def get_favorite_book(self):
-        return "Harry Potter"
-
-    def get_context_data(self, **kwargs):
-        x = 1
-        context = super(BookListView, self).get_context_data(**kwargs)
-        context["now"] = "the time right now"
-        fav_book = self.get_favorite_book()
-        context["fav_book"] = fav_book
-        return context
+    # def get_context_data(self, **kwargs):
+    #     x = 1
+    #     context = super(BookListView, self).get_context_data(**kwargs)
+    #     context["now"] = "the time right now"
+    #     return context
 
 
 class BookDetailView(DetailView):
