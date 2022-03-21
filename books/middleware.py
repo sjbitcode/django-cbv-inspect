@@ -1,4 +1,4 @@
-from books.views import InspectorMixin
+from inspector import InspectorMixin
 
 
 class TestMiddleware:
