@@ -1,8 +1,12 @@
+from dataclasses import dataclass, field
 import inspect
 import functools
+from typing import Any
+from django.http import HttpResponse
 
 from django.shortcuts import render
 from django.views.generic import (
+    View,
     ListView,
     DetailView,
     CreateView,
@@ -10,6 +14,7 @@ from django.views.generic import (
     DeleteView,
 )
 from django.urls import reverse_lazy
+from django.utils.functional import cached_property
 
 # from django.utils.decorators import method_decorator
 
@@ -17,73 +22,23 @@ from .forms import AuthorForm, BookForm
 from .models import Author, Book
 
 
-# def inspect_cbv(func):
-#     def decorator__init(self, *args, **kwargs):
-#         print("Decorator running")
-#         # print(args, kwargs)
-#         # return func(*args, **kwargs)
-
-#     func.__init__ = decorator__init
-#     return decorator__init
-
-
-def time_this(func):
-    def wrapped(*args, **kwargs):
-        print("_________timer starts_________")
-        from datetime import datetime
-
-        before = datetime.now()
-        x = func(*args, **kwargs)
-        after = datetime.now()
-        print("** elapsed Time = {0} **\n".format(after - before))
-        return x
-
-    return wrapped
-
-
-def time_all_class_methods(Cls):
-    # decoration body - doing nothing really since we need to wait until the decorated object is instantiated
-    class Wrapper:
-        def __init__(self, *args, **kwargs):
-            print(f"__init__() called with args: {args} and kwargs: {kwargs}")
-            self.decorated_obj = Cls(*args, **kwargs)
-
-        def __getattribute__(self, s):
-            try:
-                x = super().__getattribute__(s)
-                return x
-            except AttributeError:
-                pass
-            x = self.decorated_obj.__getattribute__(s)
-            if type(x) == type(self.__init__):  # it is an instance method
-                print(f"attribute belonging to decorated_obj: {x.__qualname__}")
-                return time_this(
-                    x
-                )  # this is equivalent of just decorating the method with time_this
-            else:
-                return x
-
-    return Wrapper  # decoration ends here
-
-
 INSPECT_LOGS = {}
 
-
+@dataclass
 class FunctionLog:
-    def __init__(self):
-        self.tab_index = 0
-        self.ordering = 0
-        self.args = ()
-        self.kwargs = {}
-        self.name = None
-        self.ret_value = None
+    tab_index: int = 0
+    ordering: int = 0
+    args: tuple = field(default_factory=tuple)
+    kwargs: dict = field(default_factory=dict)
+    name: str = None
+    ret_value: Any = None
 
 
 class InspectorMixin:
     tab_index = 0
     func_order = 0
 
-    @property
+    @cached_property
     def get_whitelisted_callables(self):
         cbv_funcs = list(
             filter(
@@ -110,18 +65,17 @@ class InspectorMixin:
                 print(
                     f"{tab*self.tab_index} Before calling {attr.__qualname__} with args {args} and kwargs {kwargs}"
                 )
+                print(f"{tab*self.tab_index} FUNC ORDER --> ", self.func_order)
                 # print(inspect.getsource(attr))
                 # print(inspect.getframeinfo(inspect.currentframe()).function)
                 self.tab_index += 1
                 self.func_order += 1
                 f.ordering = self.func_order
 
-                print(f"{tab*self.tab_index} FUNC ORDER --> ", self.func_order)
-
                 res = attr(*args, **kwargs)
-                print(
-                    f"{tab*self.tab_index} Result of {attr.__qualname__} call is {res}"
-                )
+                # print(
+                #     f"{tab*self.tab_index} Result of {attr.__qualname__} call is {res}"
+                # )
 
                 # Update function log
                 f.name = attr.__qualname__
@@ -134,32 +88,38 @@ class InspectorMixin:
                 INSPECT_LOGS[f.ordering] = f
 
                 self.tab_index -= 1
+                print(
+                    f"{tab*self.tab_index} Result of {attr.__qualname__} call is {res}"
+                )
                 print(f"{tab*self.tab_index} After calling {attr.__qualname__}\n")
                 return res
 
             return wrapper
         return attr
 
-
-# ListView.__getattribute__ = InspectorMixin.__getattribute__
-# for cls in ListView.mro():
-#     if cls.__name__ != "object":
-#         cls.__getattribute__ = InspectorMixin.__getattribute__
+class FooMixin:
+    def test(self):
+        return 'Yo this is a test!'
 
 
-class BookListView(InspectorMixin, ListView):
+class BookListView(FooMixin, ListView):
     model = Book
 
     def get_favorite_book(self):
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
+        # import pdb; pdb.set_trace()
         x = 1
-        context = super(BookListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["now"] = "the time right now"
         fav_book = self.get_favorite_book()
         context["fav_book"] = fav_book
         return context
+
+
+def hello(request):
+    return HttpResponse('yo')
 
 
 class BookDetailView(DetailView):
@@ -188,3 +148,4 @@ class AuthorCreateView(CreateView):
     model = Author
     form_class = AuthorForm
     success_url = reverse_lazy("books")
+
