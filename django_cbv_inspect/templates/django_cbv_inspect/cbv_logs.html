@@ -1,0 +1,26 @@
+{% block js %}
+{% endblock %}
+
+<div>
+  {{ logs }}
+  <br>
+</div>
+
+<div id="cbvInspector" class="hidden">
+  <h1>Yoo inspector html here!</h1>
+</div>
+
+<style>
+  .hidden {
+    /* display: none; */
+    color: grey;
+  }
+</style>
+
+<script>
+  const root = document.getElementById('cbvInspector');
+
+  root.addEventListener('click', () => {
+    root.classList.toggle('hidden');
+  })
+</script>

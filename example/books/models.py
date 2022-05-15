@@ -6,10 +6,6 @@ from django.db.models.signals import pre_save
 from django.urls import reverse
 
 
-# Create a digit with of length x
-d = lambda x: "".join(random.choice(string.digits) for _ in range(x))
-
-
 class Book(models.Model):
     name = models.CharField(max_length=100)
     author = models.ForeignKey("Author", on_delete=models.CASCADE)
@@ -20,7 +16,7 @@ class Book(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("book_detail", kwargs={"pk": self.pk})
+        return reverse("books:book_detail", kwargs={"pk": self.pk})
 
 
 class Author(models.Model):
@@ -33,6 +29,10 @@ class Author(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+# Create a digit with of length x
+d = lambda x: "".join(random.choice(string.digits) for _ in range(x))
 
 
 def generate_isbn(sender, instance, *args, **kwargs):

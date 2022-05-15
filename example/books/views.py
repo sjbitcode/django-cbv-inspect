@@ -1,13 +1,12 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
-from django.shortcuts import render
 from django.views.generic import (
-    View,
     ListView,
     DetailView,
     CreateView,
     UpdateView,
     DeleteView,
+    RedirectView
 )
 from django.urls import reverse_lazy
 
@@ -27,8 +26,6 @@ class BookListView(FooMixin, ListView):
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
-        # import pdb; pdb.set_trace()
-        x = 1
         context = super().get_context_data(**kwargs)
         context["now"] = "the time right now"
         fav_book = self.get_favorite_book()
@@ -38,6 +35,14 @@ class BookListView(FooMixin, ListView):
 
 def hello(request):
     return HttpResponse('yo')
+
+
+def jsontest(request):
+    return JsonResponse({'foo': 'bar'})
+
+
+class BookRedirect(RedirectView):
+    url = reverse_lazy('books:books')
 
 
 class BookDetailView(DetailView):
@@ -54,16 +59,16 @@ class BookUpdateView(UpdateView):
     form_class = BookForm
 
     def get_success_url(self) -> str:
-        return reverse_lazy("book_detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("books:book_detail", kwargs={"pk": self.object.pk})
 
 
 class BookDeleteView(DeleteView):
     model = Book
-    success_url = reverse_lazy("books")
+    success_url = reverse_lazy("books:books")
 
 
 class AuthorCreateView(CreateView):
     model = Author
     form_class = AuthorForm
-    success_url = reverse_lazy("books")
+    success_url = reverse_lazy("books:books")
 

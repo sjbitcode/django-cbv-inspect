@@ -6,7 +6,7 @@
 
 <h1>Book List</h1>
 <div class="buttons">
-    <a href="{% url 'book_create' %}">
+    <a href="{% url 'books:book_create' %}">
         <button class="button is-info">Add Book</button>
     </a>
 </div>
@@ -33,12 +33,12 @@
             <td>{{ book.published }}</td>
             <td>{{ book.isbn }}</td>
             <td>
-                <a href="{% url 'book_edit' book.pk %}">
+                <a href="{% url 'books:book_edit' book.pk %}">
                     <span class="icon has-text-success"><i class="fas fa-edit"></i></span>
                 </a>
             </td>
             <td>
-                <a href="{% url 'book_delete' book.pk %}">
+                <a href="{% url 'books:book_delete' book.pk %}">
                     <span class="icon has-text-danger"><i class="fas fa-minus-circle"></i></span>
                 </a>
             </td>

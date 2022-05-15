@@ -1,12 +1,15 @@
+import dataclasses
 from dataclasses import dataclass, field
 import functools
 import inspect
+import logging
 from typing import Any
 
 from django import get_version
 from django.utils.functional import cached_property
 
 
+logger = logging.getLogger(__name__)
 INSPECT_LOGS = {}
 
 
@@ -79,13 +82,15 @@ class InspectorMixin:
 
                 # Update function log
                 f.name = attr.__qualname__
-                f.args = args
-                f.kwargs = kwargs
-                f.ret_value = res
+                f.args = str(args)
+                f.kwargs = str(kwargs)
+                f.ret_value = str(res)
                 f.ccbv_link = get_ccbv_link(attr)
 
                 global INSPECT_LOGS
                 INSPECT_LOGS[f.ordering] = f
+
+                self.request.session['inspector_logs']['logs'][f.ordering] = dataclasses.asdict(f)
 
                 self.tab_index -= 1
                 f.tab_index = self.tab_index
