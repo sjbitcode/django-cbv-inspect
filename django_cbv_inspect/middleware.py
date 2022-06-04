@@ -29,9 +29,16 @@ def is_inspector_request(request):
 
 class InspectorToolbar:
     def __init__(self, request: HttpRequest):
-        # self.logs = self.get_logs()
+        self.logs = self.get_logs()
         self.request = request
         self.clear_session_logs()
+        self.init_logs()
+    
+    def init_logs(self):
+        self.request._inspector_logs = {
+            'path': self.request.path,
+            'logs': {}
+        }
 
     def clear_session_logs(self):
         if 'inspector_logs' in self.request.session:
@@ -41,12 +48,12 @@ class InspectorToolbar:
             'logs': {}
         }
 
-    # def get_logs(self):
-    #     from django_cbv_inspect.mixins import INSPECT_LOGS
-    #     if INSPECT_LOGS:
-    #         logger.warning('logs are non-empty! clearing now...')
-    #         INSPECT_LOGS.clear()
-    #     return INSPECT_LOGS
+    def get_logs(self):
+        from django_cbv_inspect.mixins import INSPECT_LOGS
+        if INSPECT_LOGS:
+            logger.warning('logs are non-empty! clearing now...')
+            INSPECT_LOGS.clear()
+        return INSPECT_LOGS
 
     def get_content(self):
         from django_cbv_inspect import views

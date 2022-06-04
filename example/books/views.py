@@ -1,3 +1,4 @@
+import logging
 from django.http import HttpResponse, JsonResponse
 
 from django.views.generic import (
@@ -14,6 +15,9 @@ from .forms import AuthorForm, BookForm
 from .models import Author, Book
 
 
+logger = logging.getLogger(__name__)
+
+
 class FooMixin:
     def test(self):
         return 'Yo this is a test!'
@@ -23,11 +27,13 @@ class BookListView(FooMixin, ListView):
     model = Book
 
     def get_favorite_book(self):
+        logger.error('Getting favorite book!')
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["now"] = "the time right now"
+        logger.error('In context data!')
         fav_book = self.get_favorite_book()
         context["fav_book"] = fav_book
         return context

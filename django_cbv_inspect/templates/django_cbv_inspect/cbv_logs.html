@@ -2,7 +2,12 @@
 {% endblock %}
 
 <div>
-  {{ logs }}
+  {{ request_metadata.method }} {{ request_metadata.path }} {{ request_metadata.body }}
+  <br>
+  <!-- {{ logs }} -->
+  {% for log_order, log_data in logs.items %}
+    <p style="padding-left: {{ log_data.tab_index }}px; border: 1px solid red;">{{ log_order }} {{ log_data.name }} {{ log_data.ret_value }}</p>
+  {% endfor %}
   <br>
 </div>
 

@@ -1,0 +1,4 @@
+include LICENSE
+include README.rst
+recursive-include django_cbv_inspect/static *
+recursive-include django_cbv_inspect/templates *

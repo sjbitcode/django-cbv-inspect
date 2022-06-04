@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import functools
 import inspect
 import logging
+from statistics import mode
 from typing import Any
 
 from django import get_version
@@ -13,17 +14,28 @@ logger = logging.getLogger(__name__)
 INSPECT_LOGS = {}
 
 
-def get_ccbv_link(attr_name):
-    module = inspect.getmodule(attr_name).__name__
+def get_ccbv_link(attr_module, attr_func):
+    module: str = attr_module.__name__
     from_generic = module.startswith('django.views.generic')
     from_auth = module.startswith('django.contrib.auth.views')
 
     if from_generic or from_auth:
         version = get_version().rsplit('.', 1)[0]
-        class_name, method_name = attr_name.__qualname__.split('.', 1)
+        class_name, method_name = attr_func.__qualname__.split('.', 1)
         # https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
         ccbv_link = f'https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}'
         return ccbv_link
+
+def get_path(attr_module):
+    path = attr_module.__file__
+    sp_str = '/site-packages/'
+    index = path.find(sp_str)
+
+    # For site-packages paths, display path starting from /<package-name>/
+    if index > -1:
+        path = path[(index-1)+len(sp_str):]
+
+    return path
 
 @dataclass
 class FunctionLog:
@@ -34,6 +46,7 @@ class FunctionLog:
     name: str = None
     ret_value: Any = None
     ccbv_link: str = None
+    path: str = None
 
 
 class InspectorMixin:
@@ -85,15 +98,31 @@ class InspectorMixin:
                 f.args = str(args)
                 f.kwargs = str(kwargs)
                 f.ret_value = str(res)
-                f.ccbv_link = get_ccbv_link(attr)
+
+                # Get some metadata
+                module = inspect.getmodule(attr)
+                f.ccbv_link = get_ccbv_link(module, attr)
+                f.path = get_path(module)
 
                 global INSPECT_LOGS
                 INSPECT_LOGS[f.ordering] = f
 
-                self.request.session['inspector_logs']['logs'][f.ordering] = dataclasses.asdict(f)
+                # self.request._inspector_logs['logs'][f.ordering] = dataclasses.asdict(f)
 
+                if 'inspector_logs' in self.request.session:
+                    self.request.session['inspector_logs']['logs'][f.ordering] = dataclasses.asdict(f)
+                else:
+                    self.request.session['inspector_logs'] = {
+                        'path': self.request.path,
+                        'logs': {}
+                    }
+                    self.request.session['inspector_logs']['logs'][f.ordering] = dataclasses.asdict(f)
+
+                f.tab_index = self.tab_index * 30
+                self.request._inspector_logs['logs'][f.ordering] = dataclasses.asdict(f)
+    
                 self.tab_index -= 1
-                f.tab_index = self.tab_index
+                # f.tab_index = self.tab_index
                 print(
                     f"{tab*self.tab_index} ({f.ordering}) Result: {attr.__qualname__} call is {res}"
                 )
