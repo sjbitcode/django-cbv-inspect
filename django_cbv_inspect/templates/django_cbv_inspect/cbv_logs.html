@@ -4,11 +4,29 @@
 <div>
   {{ request_metadata.method }} {{ request_metadata.path }} {{ request_metadata.body }}
   <br>
-  <!-- {{ logs }} -->
   {% for log_order, log_data in logs.items %}
-    <p style="padding-left: {{ log_data.tab_index }}px; border: 1px solid red;">{{ log_order }} {{ log_data.name }} {{ log_data.ret_value }}</p>
+    <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_order }} {{ log_data.name }} {{ log_data.ret_value }}</p> -->
+    <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">(order:{{ log_order }}) &nbsp;&nbsp;&nbsp;&nbsp; (tab_index:{{ log_data.tab_index }})</p> -->
+    <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_data.name }}</p>
   {% endfor %}
   <br>
+</div>
+
+<div id="logs"></div>
+
+<div id="test">
+  <div data-foo="1">
+    <div data-foo="2">
+      <div data-foo="3">
+        third
+      </div>
+      <div data-foo="3">
+        third 2
+      </div>
+      second
+    </div>
+    first
+  </div>
 </div>
 
 <div id="cbvInspector" class="hidden">
@@ -28,4 +46,41 @@
   root.addEventListener('click', () => {
     root.classList.toggle('hidden');
   })
+
+  ///////////////////////////////////////////////////////////////
+
+  const logContainer = document.getElementById("logs");
+  console.log(logContainer);
+
+  function getParentLogDiv(tabIndex) {
+    if (tabIndex == 1) {
+      return logContainer;
+    }
+
+    const parentTabIndex = tabIndex-1;
+    let divs = document.querySelectorAll(`[data-tab-index="${parentTabIndex}"]`);
+    let lastDiv = Array.from(divs).pop();
+    return lastDiv;
+  }
+
+  function addLogEl(logObj) {
+    let tabIndex = logObj.tabIndex;
+    let logName = logObj.name;
+    let padding = logObj.paddingLeft;
+
+    parentLogDiv = getParentLogDiv(tabIndex);
+    
+    let logDiv = document.createElement(`div`);
+    logDiv.innerHTML = logName;
+    logDiv.style.paddingLeft = `${padding}px`;
+    logDiv.style.border = "1px solid blue";
+    logDiv.dataset.tabIndex = tabIndex;
+
+    parentLogDiv.insertAdjacentElement('beforeend', logDiv);
+  }
+
+  {% for log_order, log_data in logs.items %}
+    addLogEl({tabIndex: {{log_data.tab_index}}, name: "{{log_data.name}}", paddingLeft: {{ log_data.padding }} });
+  {% endfor %}
+
 </script>

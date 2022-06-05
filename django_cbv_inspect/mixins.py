@@ -41,8 +41,10 @@ def get_path(attr_module):
 class FunctionLog:
     tab_index: int = 0
     ordering: int = 0
+    padding: int = 0
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
+    children: dict = field(default_factory=dict)
     name: str = None
     ret_value: Any = None
     ccbv_link: str = None
@@ -76,57 +78,34 @@ class InspectorMixin:
 
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
-                # print(inspect.getsource(attr))
-                # self.tab_index += 1
-                # self.func_order += 1
                 f.ordering = self.func_order
-
                 print(f"{tab*self.tab_index} ({self.func_order}) QUALNAME --> {attr.__qualname__}")
-                # print(
-                #     f"{tab*self.tab_index} Before calling {attr.__qualname__} with args {args} and kwargs {kwargs}"
-                # )
-                # print(f"{tab*self.tab_index} FUNC ORDER --> ", self.func_order)
+
+                # Prep for next call
                 self.tab_index += 1
                 self.func_order += 1
                 res = attr(*args, **kwargs)
-                # print(
-                #     f"{tab*self.tab_index} Result of {attr.__qualname__} call is {res}"
-                # )
 
                 # Update function log
                 f.name = attr.__qualname__
                 f.args = str(args)
                 f.kwargs = str(kwargs)
                 f.ret_value = str(res)
-
                 # Get some metadata
                 module = inspect.getmodule(attr)
                 f.ccbv_link = get_ccbv_link(module, attr)
                 f.path = get_path(module)
+                f.tab_index = self.tab_index
+                f.padding = f.tab_index * 30
 
+                # Store function log
+                self.request._inspector_logs['logs'][f.ordering] = dataclasses.asdict(f)
                 global INSPECT_LOGS
                 INSPECT_LOGS[f.ordering] = f
-
-                # self.request._inspector_logs['logs'][f.ordering] = dataclasses.asdict(f)
-
-                if 'inspector_logs' in self.request.session:
-                    self.request.session['inspector_logs']['logs'][f.ordering] = dataclasses.asdict(f)
-                else:
-                    self.request.session['inspector_logs'] = {
-                        'path': self.request.path,
-                        'logs': {}
-                    }
-                    self.request.session['inspector_logs']['logs'][f.ordering] = dataclasses.asdict(f)
-
-                f.tab_index = self.tab_index * 30
-                self.request._inspector_logs['logs'][f.ordering] = dataclasses.asdict(f)
     
                 self.tab_index -= 1
-                # f.tab_index = self.tab_index
-                print(
-                    f"{tab*self.tab_index} ({f.ordering}) Result: {attr.__qualname__} call is {res}"
-                )
-                # print(f"{tab*self.tab_index} After calling {attr.__qualname__}\n")
+                print(f"{tab*self.tab_index} ({f.ordering}) Result: {attr.__qualname__} call is {res}")
+
                 return res
 
             return wrapper
