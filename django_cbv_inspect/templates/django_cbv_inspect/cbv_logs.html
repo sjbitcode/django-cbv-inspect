@@ -5,14 +5,24 @@
   {{ request_metadata.method }} {{ request_metadata.path }} {{ request_metadata.body }}
   <br>
   {% for log_order, log_data in logs.items %}
-    <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_order }} {{ log_data.name }} {{ log_data.ret_value }}</p> -->
-    <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">(order:{{ log_order }}) &nbsp;&nbsp;&nbsp;&nbsp; (tab_index:{{ log_data.tab_index }})</p> -->
-    <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_data.name }}</p>
+  <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_order }} {{ log_data.name }} {{ log_data.ret_value }}</p> -->
+  <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">(order:{{ log_order }}) &nbsp;&nbsp;&nbsp;&nbsp; (tab_index:{{ log_data.tab_index }})</p> -->
+  <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_data.name }}</p>
   {% endfor %}
   <br>
 </div>
 
-<div id="logs"></div>
+<div id="logMarkup">
+  {% for log_order, log_data in logs.items %}
+  <div data-tab-index="{{log_data.tab_index}}" data-func-order="{{ log_order }}"
+    style="padding-left: {{ log_data.padding }}px; border: 1px solid green;">{{ log_data.name }}</div>
+  {% endfor %}
+</div>
+<div id="logs2"></div>
+
+<div id="logs">
+  <div class="result"></div>
+</div>
 
 <div id="test">
   <div data-foo="1">
@@ -38,6 +48,10 @@
     /* display: none; */
     color: grey;
   }
+
+  .result {
+    display: inline-block;
+  }
 </style>
 
 <script>
@@ -50,37 +64,87 @@
   ///////////////////////////////////////////////////////////////
 
   const logContainer = document.getElementById("logs");
-  console.log(logContainer);
+  // console.log(logContainer);
 
   function getParentLogDiv(tabIndex) {
     if (tabIndex == 1) {
       return logContainer;
     }
 
-    const parentTabIndex = tabIndex-1;
-    let divs = document.querySelectorAll(`[data-tab-index="${parentTabIndex}"]`);
+    const parentTabIndex = tabIndex - 1;
+    let divs = document.querySelectorAll(`#logs [data-tab-index="${parentTabIndex}"]`);
     let lastDiv = Array.from(divs).pop();
     return lastDiv;
   }
 
   function addLogEl(logObj) {
-    let tabIndex = logObj.tabIndex;
+    console.dir(logObj);
+    let tabIndex = logObj.tab_index;
     let logName = logObj.name;
-    let padding = logObj.paddingLeft;
+    let padding = logObj.padding;
 
     parentLogDiv = getParentLogDiv(tabIndex);
-    
+
     let logDiv = document.createElement(`div`);
-    logDiv.innerHTML = logName;
+    logDiv.classList.add('logEntry');
+
     logDiv.style.paddingLeft = `${padding}px`;
     logDiv.style.border = "1px solid blue";
     logDiv.dataset.tabIndex = tabIndex;
 
-    parentLogDiv.insertAdjacentElement('beforeend', logDiv);
+    let result = document.createElement('code');
+    let header = document.createElement('div');
+    result.classList.add('result');
+    header.classList.add('header')
+    header.textContent = logObj.name
+    result.textContent = logObj.ret_value
+    logDiv.insertAdjacentElement('afterbegin', header);
+    logDiv.insertAdjacentElement('beforeend', result);
+
+    // find result direct child element in parent div, and append right before that
+    parentResult = parentLogDiv.querySelector(':scope > .result');
+    // parentLogDiv.insertAdjacentElement('beforeend', logDiv);
+    parentResult.insertAdjacentElement('beforebegin', logDiv);
   }
 
   {% for log_order, log_data in logs.items %}
-    addLogEl({tabIndex: {{log_data.tab_index}}, name: "{{log_data.name}}", paddingLeft: {{ log_data.padding }} });
+  addLogEl({{ log_data| safe }});
   {% endfor %}
 
+  // experiment where the divs are already there and this JS just nests them
+  // this assumes elements in logMarkup are in order
+  const logMarkup = document.getElementById('logMarkup');
+  const logs2 = document.getElementById('logs2');
+  Array.from(logMarkup.children).forEach(child => {
+    //debugger;
+    console.log(child);
+
+    let parentLogs2Div = null;
+    // console.log('✅ ' + Object.keys(child));
+    tabIndex = child.dataset.tabIndex;
+    //console.log('✅ ' + tabIndex);
+
+    if (tabIndex == 1) {
+      console.log('tabindex is 1!');
+      parentLogs2Div = logs2;
+    }
+    else {
+      let parentTabIndex = tabIndex - 1;
+      let divs = document.querySelectorAll(`#logs2 [data-tab-index="${parentTabIndex}"]`);
+      parentLogs2Div = Array.from(divs).pop(); // get last element from querySelector
+      // experiment with adding marker for dropdown in parent innerHTML
+
+      // check if parentLogs2Div is not null
+      if (parentLogs2Div !== undefined) {
+        if (!parentLogs2Div.textContent.includes('⬇️')) {
+          parentLogs2Div.innerHTML += '⬇️';
+        }
+      }
+    }
+
+    //console.log(`parent logs2 div is ${parentLogs2Div}`);
+
+    // move child element from logMarkup div to logs2 div container! child gets removed from logMarkup div!
+    parentLogs2Div.insertAdjacentElement('beforeend', child);
+  })
 </script>

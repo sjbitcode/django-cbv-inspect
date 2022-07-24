@@ -16,26 +16,29 @@ INSPECT_LOGS = {}
 
 def get_ccbv_link(attr_module, attr_func):
     module: str = attr_module.__name__
-    from_generic = module.startswith('django.views.generic')
-    from_auth = module.startswith('django.contrib.auth.views')
+    from_generic = module.startswith("django.views.generic")
+    from_auth = module.startswith("django.contrib.auth.views")
 
     if from_generic or from_auth:
-        version = get_version().rsplit('.', 1)[0]
-        class_name, method_name = attr_func.__qualname__.split('.', 1)
+        version = get_version().rsplit(".", 1)[0]
+        class_name, method_name = attr_func.__qualname__.split(".", 1)
         # https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
-        ccbv_link = f'https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}'
+        ccbv_link = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
         return ccbv_link
+    return ""
+
 
 def get_path(attr_module):
     path = attr_module.__file__
-    sp_str = '/site-packages/'
+    sp_str = "/site-packages/"
     index = path.find(sp_str)
 
     # For site-packages paths, display path starting from /<package-name>/
     if index > -1:
-        path = path[(index-1)+len(sp_str):]
+        path = path[(index - 1) + len(sp_str) :]
 
     return path
+
 
 @dataclass
 class FunctionLog:
@@ -44,7 +47,6 @@ class FunctionLog:
     padding: int = 0
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
-    children: dict = field(default_factory=dict)
     name: str = None
     ret_value: Any = None
     ccbv_link: str = None
@@ -79,7 +81,9 @@ class InspectorMixin:
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
                 f.ordering = self.func_order
-                print(f"{tab*self.tab_index} ({self.func_order}) QUALNAME --> {attr.__qualname__}")
+                print(
+                    f"{tab*self.tab_index} ({self.func_order}) QUALNAME --> {attr.__qualname__}"
+                )
 
                 # Prep for next call
                 self.tab_index += 1
@@ -99,12 +103,14 @@ class InspectorMixin:
                 f.padding = f.tab_index * 30
 
                 # Store function log
-                self.request._inspector_logs['logs'][f.ordering] = dataclasses.asdict(f)
+                self.request._inspector_logs["logs"][f.ordering] = dataclasses.asdict(f)
                 global INSPECT_LOGS
                 INSPECT_LOGS[f.ordering] = f
-    
+
                 self.tab_index -= 1
-                print(f"{tab*self.tab_index} ({f.ordering}) Result: {attr.__qualname__} call is {res}")
+                print(
+                    f"{tab*self.tab_index} ({f.ordering}) Result: {attr.__qualname__} call is {res}"
+                )
 
                 return res
 
