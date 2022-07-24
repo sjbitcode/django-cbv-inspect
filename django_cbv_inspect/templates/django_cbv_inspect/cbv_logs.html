@@ -20,22 +20,25 @@
 </div>
 <div id="logs2"></div>
 
-<div id="logs">
+<div id="logs" class="root">
   <div class="result"></div>
 </div>
 
 <div id="test">
   <div data-foo="1">
-    <div data-foo="2">
-      <div data-foo="3">
+    <div data-foo="2" class="foo2">
+      <div data-foo="3" class="coffee">
         third
       </div>
-      <div data-foo="3">
+      <div data-foo="3" class="coffee">
         third 2
       </div>
       second
     </div>
     first
+    <div data-foo="3" class="coffee">
+      third 3
+    </div>
   </div>
 </div>
 
@@ -45,8 +48,8 @@
 
 <style>
   .hidden {
-    /* display: none; */
-    color: grey;
+    display: none;
+    /* color: grey; */
   }
 
   .result {
@@ -65,6 +68,33 @@
 
   const logContainer = document.getElementById("logs");
   // console.log(logContainer);
+
+  function addButton(parentLogDiv) {
+    let header = parentLogDiv.querySelector(':scope > .header');
+
+    if (!parentLogDiv.classList.contains('root') && !header.querySelector('.toggleButton')) {
+      const toggleButton = document.createElement('button');
+      toggleButton.classList.add('toggleButton');
+      toggleButton.innerHTML = '−';
+      header.insertAdjacentElement('afterbegin', toggleButton);
+    }
+  }
+
+  function handleToggleClick(e) {
+    console.log('🔥🔥🔥🔥')
+    console.log(e.target);
+    console.log(e.currentTarget);
+    descendantLogs = e.target.closest('.logEntry').querySelectorAll('.logEntry');
+    // debugger;
+    descendantLogs.forEach(logEntry => logEntry.classList.toggle('hidden'));
+
+    if (descendantLogs[0].classList.contains('hidden')) {
+      e.target.innerHTML = '﹢';
+    }
+    else {
+      e.target.innerHTML = '−';
+    }
+  }
 
   function getParentLogDiv(tabIndex) {
     if (tabIndex == 1) {
@@ -103,13 +133,29 @@
 
     // find result direct child element in parent div, and append right before that
     parentResult = parentLogDiv.querySelector(':scope > .result');
+    // debugger;
     // parentLogDiv.insertAdjacentElement('beforeend', logDiv);
     parentResult.insertAdjacentElement('beforebegin', logDiv);
+    addButton(parentLogDiv);
+
+    /*
+    parentHeader = parentLogDiv.querySelector(':scope > .header');
+    if (parentHeader) {
+      if (!parentHeader.textContent.includes(toggleButton)) {
+        parentHeader.innerHTML = parentHeader.innerHTML + toggleButton;
+      }
+    }
+    */
   }
 
   {% for log_order, log_data in logs.items %}
-  addLogEl({{ log_data| safe }});
+    addLogEl({{ log_data| safe }});
   {% endfor %}
+
+  toggleButtons = document.querySelectorAll('.toggleButton');
+  toggleButtons.forEach(toggleButton => {
+    toggleButton.addEventListener('click', handleToggleClick)
+  })
 
   // experiment where the divs are already there and this JS just nests them
   // this assumes elements in logMarkup are in order
