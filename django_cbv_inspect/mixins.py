@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import functools
 import inspect
 import logging
-from statistics import mode
+from pprint import pformat
 from typing import Any
 
 from django import get_version
@@ -47,10 +47,12 @@ class FunctionLog:
     padding: int = 0
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
+    arguments: dict = field(default_factory=dict)
     name: str = None
     ret_value: Any = None
     ccbv_link: str = None
     path: str = None
+    signature: str = None
 
 
 class InspectorMixin:
@@ -93,14 +95,31 @@ class InspectorMixin:
                 # Update function log
                 f.name = attr.__qualname__
                 f.args = str(args)
-                f.kwargs = str(kwargs)
-                f.ret_value = str(res)
+                f.kwargs = pformat(kwargs)
+                f.ret_value = pformat(res)
                 # Get some metadata
                 module = inspect.getmodule(attr)
                 f.ccbv_link = get_ccbv_link(module, attr)
                 f.path = get_path(module)
                 f.tab_index = self.tab_index
                 f.padding = f.tab_index * 30
+
+                f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
+                f.arguments = pformat(inspect.getcallargs(attr, *args, **kwargs))
+                # import pdb
+
+                # pdb.set_trace()
+                # func_signature = signature(attr)
+                # bounded_args = func_signature.bind(*args, **kwargs)
+                # bounded_args.apply_defaults()
+                # f.signature = str(func_signature)
+                # f.bound_args = str(bounded_args.arguments)
+
+                # print(f.signature)
+                # print(f.bound_args)
+                # import pdb
+
+                # pdb.set_trace()
 
                 # Store function log
                 self.request._inspector_logs["logs"][f.ordering] = dataclasses.asdict(f)

@@ -46,5 +46,15 @@
 - need to do accordian thing, show result at bottom of div. Sort out how to show log content.
 - nested divs with prepared divs templated, so JS only does nesting. (green border)
 
-## JS links
-- https://bobbyhadz.com/blog/javascript-get-element-by-data-attribute
+### 07/24
+- working toggle buttons
+- JS links
+  - https://bobbyhadz.com/blog/javascript-get-element-by-data-attribute
+
+## Deadline - 09/02
+- review backend logic
+  - clean up middleware, mixin, view
+- style logs
+  - show toolbar to click and view logs
+  - css
+- test!

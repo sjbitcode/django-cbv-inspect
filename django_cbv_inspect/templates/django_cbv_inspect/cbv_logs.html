@@ -70,7 +70,11 @@
   // console.log(logContainer);
 
   function addButton(parentLogDiv) {
+    // adds a toggle button to a log entry that SHOULD be a parent log!
     let header = parentLogDiv.querySelector(':scope > .header');
+
+    // let alreadyHasButton = header.querySelector('.toggleButton');
+    // let isRootLogDiv = parentLogDiv.classList.contains('root');
 
     if (!parentLogDiv.classList.contains('root') && !header.querySelector('.toggleButton')) {
       const toggleButton = document.createElement('button');
@@ -97,6 +101,7 @@
   }
 
   function getParentLogDiv(tabIndex) {
+    // returns the parent div of a log entry based on its tab index
     if (tabIndex == 1) {
       return logContainer;
     }
@@ -108,6 +113,8 @@
   }
 
   function addLogEl(logObj) {
+    // main func to add logs to page!
+
     console.dir(logObj);
     let tabIndex = logObj.tab_index;
     let logName = logObj.name;
@@ -122,34 +129,42 @@
     logDiv.style.border = "1px solid blue";
     logDiv.dataset.tabIndex = tabIndex;
 
-    let result = document.createElement('code');
+    // let result = document.createElement('code');
+    let result = document.createElement('div');
+    let resultCode = document.createElement('pre');
     let header = document.createElement('div');
     result.classList.add('result');
-    header.classList.add('header')
-    header.textContent = logObj.name
-    result.textContent = logObj.ret_value
+    header.classList.add('header');
+    header.textContent = `${logObj.name}${logObj.signature}`
+    result.innerHTML = '<b>result</b>&nbsp';
+    resultCode.textContent = logObj.ret_value
+    result.appendChild(resultCode);
     logDiv.insertAdjacentElement('afterbegin', header);
     logDiv.insertAdjacentElement('beforeend', result);
 
+    // add arguments to header
+    let argumentsDiv = document.createElement('div');
+    argumentsDiv.innerHTML = '<b>arguments</b>&nbsp';
+
+    let arguments = document.createElement('pre');
+
+    arguments.textContent = logObj.arguments;
+    console.log(logObj.arguments);
+    console.log(arguments.textContent);
+    argumentsDiv.appendChild(arguments);
+
+    header.insertAdjacentElement('beforeend', argumentsDiv);
+
     // find result direct child element in parent div, and append right before that
     parentResult = parentLogDiv.querySelector(':scope > .result');
-    // debugger;
-    // parentLogDiv.insertAdjacentElement('beforeend', logDiv);
     parentResult.insertAdjacentElement('beforebegin', logDiv);
-    addButton(parentLogDiv);
 
-    /*
-    parentHeader = parentLogDiv.querySelector(':scope > .header');
-    if (parentHeader) {
-      if (!parentHeader.textContent.includes(toggleButton)) {
-        parentHeader.innerHTML = parentHeader.innerHTML + toggleButton;
-      }
-    }
-    */
+    // make sure parent has a button since it now has child log entries!
+    addButton(parentLogDiv);
   }
 
   {% for log_order, log_data in logs.items %}
-    addLogEl({{ log_data| safe }});
+    addLogEl({{ log_data|safe }});
   {% endfor %}
 
   toggleButtons = document.querySelectorAll('.toggleButton');

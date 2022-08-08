@@ -24,7 +24,7 @@ def is_inspector_request(request):
         )
     except Resolver404:
         return False
-    return resolver_match.namespaces and resolver_match.namespaces[-1] == 'inspector'
+    return resolver_match.namespaces and resolver_match.namespaces[-1] == "inspector"
 
 
 class InspectorToolbar:
@@ -33,30 +33,26 @@ class InspectorToolbar:
         self.request = request
         self.clear_session_logs()
         self.init_logs()
-    
+
     def init_logs(self):
-        self.request._inspector_logs = {
-            'path': self.request.path,
-            'logs': {}
-        }
+        self.request._inspector_logs = {"path": self.request.path, "logs": {}}
 
     def clear_session_logs(self):
-        if 'inspector_logs' in self.request.session:
-            del self.request.session['inspector_logs']
-        self.request.session['inspector_logs'] = {
-            'path': self.request.path,
-            'logs': {}
-        }
+        if "inspector_logs" in self.request.session:
+            del self.request.session["inspector_logs"]
+        self.request.session["inspector_logs"] = {"path": self.request.path, "logs": {}}
 
     def get_logs(self):
         from django_cbv_inspect.mixins import INSPECT_LOGS
+
         if INSPECT_LOGS:
-            logger.warning('logs are non-empty! clearing now...')
+            logger.warning("logs are non-empty! clearing now...")
             INSPECT_LOGS.clear()
         return INSPECT_LOGS
 
     def get_content(self):
         from django_cbv_inspect import views
+
         return views.render_panel(self.request)
 
 
@@ -87,7 +83,7 @@ class InspectorMiddleware:
         # for log in INSPECT_LOGS:
         #     pprint(INSPECT_LOGS[log])
 
-        if hasattr(response, 'content'):
+        if hasattr(response, "content"):
             soup = BeautifulSoup(response.content.decode(), "html.parser")
             if soup.body:
                 inspector_html = i.get_content()
@@ -101,7 +97,7 @@ class InspectorMiddleware:
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        if hasattr(view_func, 'view_class'):
+        if hasattr(view_func, "view_class"):
             if InspectorMixin not in view_func.view_class.__bases__:
                 original_bases = view_func.view_class.__bases__
                 new_bases = (InspectorMixin, *original_bases)
