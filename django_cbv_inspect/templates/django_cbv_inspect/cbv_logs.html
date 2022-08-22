@@ -5,8 +5,6 @@
   {{ request_metadata.method }} {{ request_metadata.path }} {{ request_metadata.body }}
   <br>
   {% for log_order, log_data in logs.items %}
-  <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_order }} {{ log_data.name }} {{ log_data.ret_value }}</p> -->
-  <!-- <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">(order:{{ log_order }}) &nbsp;&nbsp;&nbsp;&nbsp; (tab_index:{{ log_data.tab_index }})</p> -->
   <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_data.name }}</p>
   {% endfor %}
   <br>
@@ -20,7 +18,7 @@
 </div>
 <div id="logs2"></div>
 
-<div id="logs" class="root">
+<div id="logs" class="root hidden">
   <div class="result"></div>
 </div>
 
@@ -42,6 +40,14 @@
   </div>
 </div>
 
+<div id="cbvHandle">
+  <div id="innerHandler">
+    <span id="cbvInnerHandlerD">D</span>
+    <span id="cbvInnerHandlerJ">J</span>
+    CBV
+  </div>
+</div>
+
 <div id="cbvInspector" class="hidden">
   <h1>Yoo inspector html here!</h1>
 </div>
@@ -55,18 +61,73 @@
   .result {
     display: inline-block;
   }
+
+  #cbvHandle {
+    position: fixed;
+    transform: rotate(-90deg);
+    transform-origin: right bottom;
+    /* border: 1px solid #f9c1e0;
+    border: 1px solid #ec4899;
+    border: 1px solid #22d3ee;
+    border: 1px solid #fde047; */
+    border-bottom: 0;
+    top: 50%;
+    right: 0;
+    z-index: 1;
+    opacity: 0.75;
+  }
+
+  #innerHandler:hover {
+    background-color: #111;
+    border-color: #fc65bb;
+    border-color: #ec4899;
+    border-color: #38bdf8;
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  #innerHandler {
+      padding: 0 5px;
+      border: 4px solid #faa4d5;
+      border: 5px solid #f472b6;
+      border: 5px solid #7dd3fc;
+      /* border-style: dashed; */
+      border-bottom-width: 0;
+      color: #fff;
+      font-size: 22px;
+      font-weight: bold;
+      background-color: #282828;
+      opacity: 0.5;
+      display: inline-flex;
+      align-items: baseline;
+    }
+  
+  #cbvInnerHandlerD {
+    color: #7dd3fc;
+  }
+
+  #cbvInnerHandlerJ {
+    color: #7dd3fc;
+    font-size: 16px;
+  }
 </style>
 
 <script>
   const root = document.getElementById('cbvInspector');
+  const toolbarHandler = document.getElementById('cbvHandle');
+  const logContainer = document.getElementById("logs");
 
   root.addEventListener('click', () => {
     root.classList.toggle('hidden');
   })
 
+  toolbarHandler.addEventListener('click', () => {
+    logContainer.classList.toggle('hidden');
+  });
+
   ///////////////////////////////////////////////////////////////
 
-  const logContainer = document.getElementById("logs");
+  // const logContainer = document.getElementById("logs");
   // console.log(logContainer);
 
   function addButton(parentLogDiv) {
