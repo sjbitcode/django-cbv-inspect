@@ -1,28 +1,16 @@
 {% block js %}
 {% endblock %}
 
-<div>
-  {{ request_metadata.method }} {{ request_metadata.path }} {{ request_metadata.body }}
-  <br>
-  {% for log_order, log_data in logs.items %}
-  <p style="padding-left: {{ log_data.padding }}px; border: 1px solid red;">{{ log_data.name }}</p>
-  {% endfor %}
-  <br>
-</div>
-
-<div id="logMarkup">
-  {% for log_order, log_data in logs.items %}
-  <div data-tab-index="{{log_data.tab_index}}" data-func-order="{{ log_order }}"
-    style="padding-left: {{ log_data.padding }}px; border: 1px solid green;">{{ log_data.name }}</div>
-  {% endfor %}
-</div>
-<div id="logs2"></div>
-
 <div id="logs" class="root hidden">
+  <div id="panelTitle">
+    <h1>Request for <code>/books</code></h1>
+  </div>
+  <!-- <div id="panelBody">
+  </div> -->
   <div class="result"></div>
 </div>
 
-<div id="test">
+<!-- <div id="test">
   <div data-foo="1">
     <div data-foo="2" class="foo2">
       <div data-foo="3" class="coffee">
@@ -38,7 +26,7 @@
       third 3
     </div>
   </div>
-</div>
+</div> -->
 
 <div id="cbvHandle">
   <div id="innerHandler">
@@ -48,14 +36,9 @@
   </div>
 </div>
 
-<div id="cbvInspector" class="hidden">
-  <h1>Yoo inspector html here!</h1>
-</div>
-
 <style>
   .hidden {
     display: none;
-    /* color: grey; */
   }
 
   .result {
@@ -66,10 +49,6 @@
     position: fixed;
     transform: rotate(-90deg);
     transform-origin: right bottom;
-    /* border: 1px solid #f9c1e0;
-    border: 1px solid #ec4899;
-    border: 1px solid #22d3ee;
-    border: 1px solid #fde047; */
     border-bottom: 0;
     top: 50%;
     right: 0;
@@ -79,8 +58,6 @@
 
   #innerHandler:hover {
     background-color: #111;
-    border-color: #fc65bb;
-    border-color: #ec4899;
     border-color: #38bdf8;
     opacity: 1;
     cursor: pointer;
@@ -88,10 +65,7 @@
 
   #innerHandler {
       padding: 0 5px;
-      border: 4px solid #faa4d5;
-      border: 5px solid #f472b6;
       border: 5px solid #7dd3fc;
-      /* border-style: dashed; */
       border-bottom-width: 0;
       color: #fff;
       font-size: 22px;
@@ -110,16 +84,38 @@
     color: #7dd3fc;
     font-size: 16px;
   }
+
+  #logs {
+    position: fixed;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1;
+    /* height: 100vh;
+    width: 100vw; */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+  }
+
+  #panelTitle {
+    /* position: absolute; */
+    background-color: #ffc;
+    color: #666;
+    padding-left: 20px;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 50px;
+  }
 </style>
 
 <script>
-  const root = document.getElementById('cbvInspector');
   const toolbarHandler = document.getElementById('cbvHandle');
   const logContainer = document.getElementById("logs");
-
-  root.addEventListener('click', () => {
-    root.classList.toggle('hidden');
-  })
+  // const logContainer = document.querySelector("#logs #panelBody");
 
   toolbarHandler.addEventListener('click', () => {
     logContainer.classList.toggle('hidden');
@@ -133,7 +129,7 @@
   function addButton(parentLogDiv) {
     // adds a toggle button to a log entry that SHOULD be a parent log!
     let header = parentLogDiv.querySelector(':scope > .header');
-
+    // debugger;
     // let alreadyHasButton = header.querySelector('.toggleButton');
     // let isRootLogDiv = parentLogDiv.classList.contains('root');
 
@@ -218,6 +214,7 @@
 
     // find result direct child element in parent div, and append right before that
     parentResult = parentLogDiv.querySelector(':scope > .result');
+    // debugger;
     parentResult.insertAdjacentElement('beforebegin', logDiv);
 
     // make sure parent has a button since it now has child log entries!
@@ -231,42 +228,5 @@
   toggleButtons = document.querySelectorAll('.toggleButton');
   toggleButtons.forEach(toggleButton => {
     toggleButton.addEventListener('click', handleToggleClick)
-  })
-
-  // experiment where the divs are already there and this JS just nests them
-  // this assumes elements in logMarkup are in order
-  const logMarkup = document.getElementById('logMarkup');
-  const logs2 = document.getElementById('logs2');
-  Array.from(logMarkup.children).forEach(child => {
-    //debugger;
-    console.log(child);
-
-    let parentLogs2Div = null;
-    // console.log('✅ ' + Object.keys(child));
-    tabIndex = child.dataset.tabIndex;
-    //console.log('✅ ' + tabIndex);
-
-    if (tabIndex == 1) {
-      console.log('tabindex is 1!');
-      parentLogs2Div = logs2;
-    }
-    else {
-      let parentTabIndex = tabIndex - 1;
-      let divs = document.querySelectorAll(`#logs2 [data-tab-index="${parentTabIndex}"]`);
-      parentLogs2Div = Array.from(divs).pop(); // get last element from querySelector
-      // experiment with adding marker for dropdown in parent innerHTML
-
-      // check if parentLogs2Div is not null
-      if (parentLogs2Div !== undefined) {
-        if (!parentLogs2Div.textContent.includes('⬇️')) {
-          parentLogs2Div.innerHTML += '⬇️';
-        }
-      }
-    }
-
-    //console.log(`parent logs2 div is ${parentLogs2Div}`);
-
-    // move child element from logMarkup div to logs2 div container! child gets removed from logMarkup div!
-    parentLogs2Div.insertAdjacentElement('beforeend', child);
-  })
+  });
 </script>
