@@ -6,28 +6,43 @@
     <h1>Request for <code>{{ request_metadata.method }} {{ request_metadata.path }}</code></h1>
     <button id="exitLogsPanel" class="cbvLogsButton">x</button>
   </div>
-  <!-- <div id="panelBody">
-  </div> -->
-  <div class="result"></div>
-</div>
 
-<!-- <div id="test">
-  <div data-foo="1">
-    <div data-foo="2" class="foo2">
-      <div data-foo="3" class="coffee">
-        third
-      </div>
-      <div data-foo="3" class="coffee">
-        third 2
-      </div>
-      second
-    </div>
-    first
-    <div data-foo="3" class="coffee">
-      third 3
-    </div>
-  </div>
-</div> -->
+  <div class="result"></div>
+
+  <table class="cbvInspectlogsTable" style="width: 100%;">
+    <thead>
+      <tr>
+        <th>CBV method call</th>
+        <th>Arguments</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for key, val in logs.items %}
+        <tr class="cbvLogEntry {{ val.parent }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
+          <td>
+            <div style="padding-left: {{val.padding}}px;">
+              {% if val.is_parent %}
+                <button type="button" class="newToggleButton cbvLogsButton">-</button>
+              {% endif %}
+              {{ val.name }}
+            </div>
+          </td>
+          <td>
+            👀 arguments
+            <!-- {{ val.arguments }} -->
+          </td>
+  
+          <td>
+            👀 result
+            <!-- {{ val.ret_value }} -->
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 <div id="cbvHandle">
   <div id="innerHandler">
@@ -149,7 +164,45 @@
   const toolbarHandler = document.getElementById('cbvHandle');
   const logContainer = document.getElementById("logs");
   const exitLogsPanelBtn = document.getElementById("exitLogsPanel");
-  // const logContainer = document.querySelector("#logs #panelBody");
+
+  newtoggleButtons = document.querySelectorAll('.newToggleButton');
+  newtoggleButtons.forEach(toggleButton => {
+    toggleButton.addEventListener('click', newHandleToggleClick)
+  });
+
+  function newHandleToggleClick(e){
+    console.log('🍩');
+    console.log(e.target);
+    console.log(e.currentTarget);
+    
+    const parent = e.currentTarget.closest('tr');
+    console.log('🎅🏼 ', parent.id);
+    let parentOrder = parent.dataset.cbvOrder;
+    let parentTabIndex = parent.dataset.cbvTabIndex;
+    // const allAfter = parent.querySelectorAll(`#${parent.id} ~ tr.cbvLogEntry`)
+    const descendantLogs = document.querySelectorAll(`tr.${parent.id}`);
+    
+
+    if (e.currentTarget.innerHTML === '-') {
+      // hide all descendents!
+      debugger;
+      descendantLogs.forEach(el => el.classList.add('hidden'));
+    }
+    else if (e.currentTarget.innerHTML === '+') {
+      // show all descendents!
+      debugger;
+      descendantLogs.forEach(el => el.classList.remove('hidden'));
+    }
+
+    debugger;
+    // update button based on what just happened
+    if (descendantLogs[0].classList.contains('hidden')) {
+      e.currentTarget.innerHTML = '+';
+    }
+    else {
+      e.currentTarget.innerHTML = '-';
+    }
+  }
 
   function toggleLogVisibility() {
     logContainer.classList.toggle('hidden');
@@ -203,9 +256,6 @@
     if (tabIndex == 0) {
       return logContainer;
     }
-    // if (tabIndex == 1) {
-    //   return logContainer;
-    // }
 
     const parentTabIndex = tabIndex - 1;
     let divs = document.querySelectorAll(`#logs [data-tab-index="${parentTabIndex}"]`);
@@ -238,7 +288,7 @@
     header.classList.add('header');
     header.textContent = `${logObj.name}${logObj.signature}`
     result.innerHTML = '<b>result</b>&nbsp';
-    // result.classList.add('hidden'); // hide results now
+    result.classList.add('hidden'); // hide results now
     resultCode.textContent = logObj.ret_value
     result.appendChild(resultCode);
     logDiv.insertAdjacentElement('afterbegin', header);
@@ -247,7 +297,7 @@
     // add arguments to header
     let argumentsDiv = document.createElement('div');
     argumentsDiv.innerHTML = '<b>arguments</b>&nbsp';
-    // argumentsDiv.classList.add('hidden');  // hide arguments now
+    argumentsDiv.classList.add('hidden');  // hide arguments now
 
     let arguments = document.createElement('pre');
 

@@ -82,10 +82,12 @@ class InspectorMixin:
 
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
-                f.ordering = self.func_order
                 print(
                     f"{tab*self.tab_index} ({self.func_order}) QUALNAME --> {attr.__qualname__}"
                 )
+                f.ordering = self.func_order
+                f.tab_index = self.tab_index
+                f.padding = f.tab_index * 30
 
                 # Prep for next call
                 self.tab_index += 1
@@ -101,8 +103,6 @@ class InspectorMixin:
                 module = inspect.getmodule(attr)
                 f.ccbv_link = get_ccbv_link(module, attr)
                 f.path = get_path(module)
-                f.tab_index = self.tab_index
-                f.padding = f.tab_index * 30
 
                 f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
                 f.arguments = pformat(inspect.getcallargs(attr, *args, **kwargs))
