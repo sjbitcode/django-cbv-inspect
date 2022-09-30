@@ -185,16 +185,27 @@
 
     if (e.currentTarget.innerHTML === '-') {
       // hide all descendents!
-      debugger;
-      descendantLogs.forEach(el => el.classList.add('hidden'));
+      // debugger;
+      descendantLogs.forEach(el => {
+        el.classList.add('hidden');
+        debugger;
+        let hasButton = el.querySelector('.newToggleButton');
+        hasButton ? hasButton.innerHTML = '+' : null;
+        // el.querySelector('.newToggleButton').innerHTML = '+';  // update descendent buttons
+      });
     }
     else if (e.currentTarget.innerHTML === '+') {
       // show all descendents!
-      debugger;
-      descendantLogs.forEach(el => el.classList.remove('hidden'));
+      // debugger;
+      descendantLogs.forEach(el => {
+        el.classList.remove('hidden');
+        let hasButton = el.querySelector('.newToggleButton');
+        hasButton ? hasButton.innerHTML = '-' : null;
+        // el.querySelector('.newToggleButton').innerHTML = '-';  // update descendent buttons
+      });
     }
 
-    debugger;
+    // debugger;
     // update button based on what just happened
     if (descendantLogs[0].classList.contains('hidden')) {
       e.currentTarget.innerHTML = '+';
