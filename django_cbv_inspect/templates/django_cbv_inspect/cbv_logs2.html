@@ -1,59 +1,75 @@
-{% block js %}
-{% endblock %}
+<div id="djCbv">
 
-<div id="logs" class="root hidden">
-  <div id="panelTitle">
-    <h1>Request for <code>{{ request_metadata.method }} {{ request_metadata.path }}</code></h1>
-    <button id="exitLogsPanel" class="cbvLogsButton">x</button>
+  <!-- cbv logs handle -->
+  <div id="djCbvHandle">
+    <div id="djCbvShowPanelButton">
+      <span id="djCbvShowPanelButtonD">D</span>
+      <span id="djCbvShowPanelButtonJ">J</span>
+      CBV
+    </div>
   </div>
 
-  <div class="result"></div>
+  <!-- cbv logs panel -->
+  <div class="djcbv-panel djcbv-hidden">
 
-  <table class="cbvInspectlogsTable" style="width: 100%;">
-    <thead>
-      <tr>
-        <th>CBV method call</th>
-        <th>Arguments</th>
-        <th>Result</th>
-      </tr>
-    </thead>
+    <!-- panel title -->
+    <div class="djcbv-panel-title">
+      <h1>CBV inspect for <code>{{ request_metadata.method }} {{ request_metadata.path }}</code></h1>
+      <button id="djCbvExitPanel" class="cbvLogsButton">x</button>
+    </div>
 
-    <tbody>
-      {% for key, val in logs.items %}
-        <tr class="cbvLogEntry {{ val.parent }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
-          <td>
-            <div style="padding-left: {{val.padding}}px;">
-              {% if val.is_parent %}
-                <button type="button" class="newToggleButton cbvLogsButton">-</button>
-              {% endif %}
-              {{ val.name }}
-            </div>
-          </td>
-          <td>
-            👀 arguments
-            <!-- {{ val.arguments }} -->
-          </td>
-  
-          <td>
-            👀 result
-            <!-- {{ val.ret_value }} -->
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<div id="cbvHandle">
-  <div id="innerHandler">
-    <span id="cbvInnerHandlerD">D</span>
-    <span id="cbvInnerHandlerJ">J</span>
-    CBV
+    <!-- panel content -->
+    <div class="djcbv-panel-content">
+      <table>
+        <thead>
+          <tr>
+            <th>CBV method call</th>
+            <th>Arguments</th>
+            <th>Return Value</th>
+          </tr>
+        </thead>
+    
+        <tbody>
+          {% for key, val in logs.items %}
+            <tr class="cbvLogEntry {{ val.parent }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
+              <td>
+                <div style="padding-left: {{val.padding}}px;">
+                  {% if val.is_parent %}
+                    <button type="button" class="newToggleButton cbvLogsButton">-</button>
+                  {% endif %}
+                  {% if val.ccbv_link %}
+                    <a href="{{ val.ccbv_link }}" target="_blank">
+                      <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>    
+                    </a>
+                  {% else %}
+                    <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <details class="djcbv-show-arguments">
+                  <summary>Toggle args</summary>
+                  <code>{{ val.arguments }}</code>
+                </details>
+              </td>
+      
+              <td>
+                <details class="djcbv-show-result">
+                  <summary>Toggle return value</summary>
+                  <code>{{ val.ret_value }}</code>
+                </details>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+
 </div>
 
 <style>
-  .hidden {
+  .hidden, .djcbv-hidden {
     display: none !important;
   }
 
@@ -61,65 +77,134 @@
     display: inline-block;
   }
 
-  #cbvHandle {
+  #djCbvHandle {
     position: fixed;
     transform: rotate(-90deg);
     transform-origin: right bottom;
-    border-bottom: 0;
     top: 50%;
     right: 0;
     z-index: 1;
     opacity: 0.75;
-    /* border: 1px solid #6ec2ed; */
+    border: 1px solid #282828;
+    border-bottom: 0;
   }
 
-  #innerHandler:hover {
+  #djCbvShowPanelButton:hover {
     background-color: #111;
     border-color: #38bdf8;
     opacity: 1;
     cursor: pointer;
   }
 
-  #innerHandler {
-      padding: 0 5px;
-      border: 5px solid #7dd3fc;
-      border-bottom-width: 0;
-      color: #fff;
-      font-size: 22px;
-      font-weight: bold;
-      background-color: #282828;
-      opacity: 0.5;
-      display: inline-flex;
-      align-items: baseline;
-    }
+  #djCbvShowPanelButton {
+    padding: 0 5px;
+    border: 5px solid #7dd3fc;
+    border-bottom-width: 0;
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    background-color: #282828;
+    opacity: 0.5;
+    display: inline-flex;
+    align-items: baseline;
+  }
   
-  #cbvInnerHandlerD {
+  #djCbvShowPanelButtonD {
     color: #7dd3fc;
   }
 
-  #cbvInnerHandlerJ {
+  #djCbvShowPanelButtonJ {
     color: #7dd3fc;
     font-size: 16px;
   }
 
-  #logs {
+  .djcbv-panel {
     position: fixed;
     padding: 0;
     margin: 0;
     top: 0;
     left: 0;
-    background-color: #fff;
+    background-color: #eee;
+    background-color: #f4fbff;
     z-index: 1000000000;
-    /* height: 100vh;
-    width: 100vw; */
     width: 100%;
     height: 100%;
     overflow: auto;
   }
 
-  #panelTitle {
+  .djcbv-panel-content {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: auto;
+    padding: 5px 20px 0 20px;
+
+    font-size: 14px;
+    line-height: 1.5em;
+    color: #000;
+    vertical-align: baseline;
+    font-family: sans-serif;
+  }
+
+  #djCbv .djcbv-panel-content table {
+    /* border: 1px solid #ccc; */
+    border: 1px solid #ffe2c4;
+    border-collapse: collapse;
+    width: 100%;
+    background-color: #fff;
+    display: table;
+    margin-top: 0.8em;
+    overflow: auto;
+  }
+
+  #djCbv .djcbv-panel-content thead th {
+    padding: 4px 6px 4px 3px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  #djCbv .djcbv-panel-content tbody td {
+    padding: 4px 6px 4px 3px;
+    text-align: left;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  #djCbv .djcbv-panel-content tbody > tr:nth-child(odd) {
+    background-color: #f5f5f5;
+  }
+
+  #djCbv .newToggleButton {
+    box-sizing: content-box;
+    padding: 0;
+    border: 1px solid #999;
+    border-radius: 0;
+    width: 12px;
+    color: #777;
+    background: linear-gradient(to bottom, #fff, #dcdcdc);
+    line-height: 1;
+  }
+
+  #djCbv .djcbv-method {
+    font-weight: 400;
+  }
+
+  #djCbv .djcbv-signature {
+    color: #545454;
+    font-weight: 300;
+    font-family: Consolas,"courier new";
+    /* font-family: Consolas, Monaco, "Bitstream Vera Sans Mono", "Lucida Console", monospace; */
+    /* font-size: 13px; */
+  }
+
+  #panelTitle, .djcbv-panel-title {
     /* position: absolute; */
-    background-color: #ffc;
+    /* background-color: #ffc; */
+    background-color: #7dd3fc;
     color: #666;
     padding-left: 20px;
     top: 0;
@@ -131,12 +216,19 @@
     justify-content: space-between;
   }
 
-  #panelTitle h1 {
+  #panelTitle h1, .djcbv-panel-title h1 {
     font-size: 24px;
-    color: black;
+    /* color: black; */
+    color: white;
   }
 
-  #exitLogsPanel {
+  #panelTitle h1, .djcbv-panel-title h1 code {
+    background-color: white;
+    color: #8e8e8e;
+    font-weight: bold;
+  }
+
+  #djCbvExitPanel {
     margin: 0 20px;
     border: 6px solid #ddd;
     border-radius: 50%;
@@ -151,8 +243,26 @@
     width: 16px;
   }
 
-  #exitLogsPanel:hover {
-    background: #f14668;
+  #djCbvExitPanel:hover {
+    /* background: #f14668; */
+    background: #ff9ed9;
+  }
+
+  #djCbv .djcbv-show-arguments code, #djCbv .djcbv-show-result code {
+    display: block;
+    font-family: Consolas, Monaco, "Bitstream Vera Sans Mono", "Lucida Console", monospace;
+    font-size: 12px;
+    white-space: pre;
+    /* white-space: normal; */
+    overflow: auto;
+    /* background-color: #fff; */
+    background-color: inherit;
+    /* width: 30%; */
+    color: #e1a052;
+  }
+
+  #djCbv summary {
+    color: #55a0c4;
   }
 
   .cbvLogsButton {
@@ -161,9 +271,9 @@
 </style>
 
 <script>
-  const toolbarHandler = document.getElementById('cbvHandle');
-  const logContainer = document.getElementById("logs");
-  const exitLogsPanelBtn = document.getElementById("exitLogsPanel");
+  const toolbarHandler = document.querySelector('#djCbv #djCbvHandle');
+  const logContainer = document.querySelector("#djCbv .djcbv-panel");
+  const djCbvExitPanelBtn = document.querySelector("#djCbv #djCbvExitPanel");
 
   newtoggleButtons = document.querySelectorAll('.newToggleButton');
   newtoggleButtons.forEach(toggleButton => {
@@ -179,35 +289,28 @@
     console.log('🎅🏼 ', parent.id);
     let parentOrder = parent.dataset.cbvOrder;
     let parentTabIndex = parent.dataset.cbvTabIndex;
-    // const allAfter = parent.querySelectorAll(`#${parent.id} ~ tr.cbvLogEntry`)
     const descendantLogs = document.querySelectorAll(`tr.${parent.id}`);
-    
+
 
     if (e.currentTarget.innerHTML === '-') {
       // hide all descendents!
-      // debugger;
       descendantLogs.forEach(el => {
-        el.classList.add('hidden');
-        debugger;
+        el.classList.add('djcbv-hidden');
         let hasButton = el.querySelector('.newToggleButton');
         hasButton ? hasButton.innerHTML = '+' : null;
-        // el.querySelector('.newToggleButton').innerHTML = '+';  // update descendent buttons
       });
     }
     else if (e.currentTarget.innerHTML === '+') {
       // show all descendents!
-      // debugger;
       descendantLogs.forEach(el => {
-        el.classList.remove('hidden');
+        el.classList.remove('djcbv-hidden');
         let hasButton = el.querySelector('.newToggleButton');
         hasButton ? hasButton.innerHTML = '-' : null;
-        // el.querySelector('.newToggleButton').innerHTML = '-';  // update descendent buttons
       });
     }
 
-    // debugger;
     // update button based on what just happened
-    if (descendantLogs[0].classList.contains('hidden')) {
+    if (descendantLogs[0].classList.contains('djcbv-hidden')) {
       e.currentTarget.innerHTML = '+';
     }
     else {
@@ -216,63 +319,13 @@
   }
 
   function toggleLogVisibility() {
-    logContainer.classList.toggle('hidden');
-  }
-
-  function toggleArgumentVisibility(el) {
-    el.classList.toggle('hidden');
+    logContainer.classList.toggle('djcbv-hidden');
   }
 
   toolbarHandler.addEventListener('click', toggleLogVisibility);
-  exitLogsPanelBtn.addEventListener('click', toggleLogVisibility);
+  djCbvExitPanelBtn.addEventListener('click', toggleLogVisibility);
 
   ///////////////////////////////////////////////////////////////
-
-  // const logContainer = document.getElementById("logs");
-  // console.log(logContainer);
-
-  function addButton(parentLogDiv) {
-    // adds a toggle button to a log entry that SHOULD be a parent log!
-    let header = parentLogDiv.querySelector(':scope > .header');
-    // debugger;
-    // let alreadyHasButton = header.querySelector('.toggleButton');
-    // let isRootLogDiv = parentLogDiv.classList.contains('root');
-
-    if (!parentLogDiv.classList.contains('root') && !header.querySelector('.toggleButton')) {
-      const toggleButton = document.createElement('button');
-      toggleButton.classList.add('toggleButton', 'cbvLogsButton');
-      toggleButton.innerHTML = '−';
-      header.insertAdjacentElement('afterbegin', toggleButton);
-    }
-  }
-
-  function handleToggleClick(e) {
-    console.log('🔥🔥🔥🔥')
-    console.log(e.target);
-    console.log(e.currentTarget);
-    descendantLogs = e.target.closest('.logEntry').querySelectorAll('.logEntry');
-    // debugger;
-    descendantLogs.forEach(logEntry => logEntry.classList.toggle('hidden'));
-
-    if (descendantLogs[0].classList.contains('hidden')) {
-      e.target.innerHTML = '﹢';
-    }
-    else {
-      e.target.innerHTML = '−';
-    }
-  }
-
-  function getParentLogDiv(tabIndex) {
-    // returns the parent div of a log entry based on its tab index
-    if (tabIndex == 0) {
-      return logContainer;
-    }
-
-    const parentTabIndex = tabIndex - 1;
-    let divs = document.querySelectorAll(`#logs [data-tab-index="${parentTabIndex}"]`);
-    let lastDiv = Array.from(divs).pop();
-    return lastDiv;
-  }
 
   function addLogEl(logObj) {
     // main func to add logs to page!
@@ -327,13 +380,4 @@
     // make sure parent has a button since it now has child log entries!
     addButton(parentLogDiv);
   }
-
-  {% for log_order, log_data in logs.items %}
-    addLogEl({{ log_data|safe }});
-  {% endfor %}
-
-  toggleButtons = document.querySelectorAll('.toggleButton');
-  toggleButtons.forEach(toggleButton => {
-    toggleButton.addEventListener('click', handleToggleClick)
-  });
 </script>
