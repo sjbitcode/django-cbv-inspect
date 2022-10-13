@@ -23,8 +23,9 @@
       <table>
         <thead>
           <tr>
-            <th>CBV method call</th>
+            <th>CBV method</th>
             <th>Arguments</th>
+            <th>Keyword Arguments</th>
             <th>Return Value</th>
           </tr>
         </thead>
@@ -46,18 +47,29 @@
                   {% endif %}
                 </div>
               </td>
-              <td>
-                <details class="djcbv-show-arguments">
-                  <summary>Toggle args</summary>
+              
+              <td class="djcbv-show-arguments">
+                <code>{{ val.args }}</code>
+                <!-- <details class="djcbv-show-arguments djcbv-hidden">
+                  <summary>toggle args</summary>
                   <code>{{ val.arguments }}</code>
-                </details>
+                </details> -->
+              </td>
+
+              <td class="djcbv-show-arguments">
+                <code>{{ val.kwargs }}</code>
+                <!-- <details class="djcbv-show-arguments djcbv-hidden">
+                  <summary>toggle args</summary>
+                  <code>{{ val.arguments }}</code>
+                </details> -->
               </td>
       
-              <td>
-                <details class="djcbv-show-result">
-                  <summary>Toggle return value</summary>
+              <td class="djcbv-show-arguments">
+                <code>{{ val.ret_value }}</code>
+                <!-- <details class="djcbv-show-result djcbv-hidden">
+                  <summary>toggle return value</summary>
                   <code>{{ val.ret_value }}</code>
-                </details>
+                </details> -->
               </td>
             </tr>
           {% endfor %}
@@ -124,8 +136,9 @@
     margin: 0;
     top: 0;
     left: 0;
-    background-color: #eee;
-    background-color: #f4fbff;
+    /* background-color: #eee; */
+    /* background-color: #f4fbff; */
+    background-color: #fff;
     z-index: 1000000000;
     width: 100%;
     height: 100%;
@@ -140,6 +153,7 @@
     left: 0;
     height: auto;
     padding: 5px 20px 0 20px;
+    overflow-y: auto;
 
     font-size: 14px;
     line-height: 1.5em;
@@ -150,7 +164,9 @@
 
   #djCbv .djcbv-panel-content table {
     /* border: 1px solid #ccc; */
-    border: 1px solid #ffe2c4;
+    /* border: 1px solid #ffe2c4; */
+    /* border: 1px solid #bae6fd; */
+    border: 1px solid #e2e8f0;
     border-collapse: collapse;
     width: 100%;
     background-color: #fff;
@@ -202,9 +218,10 @@
   }
 
   #panelTitle, .djcbv-panel-title {
-    /* position: absolute; */
+    position: absolute;
     /* background-color: #ffc; */
-    background-color: #7dd3fc;
+    /* background-color: #7dd3fc; */
+    background-color: #0ea5e9;
     color: #666;
     padding-left: 20px;
     top: 0;
@@ -226,6 +243,7 @@
     background-color: white;
     color: #8e8e8e;
     font-weight: bold;
+    border-radius: 3px;
   }
 
   #djCbvExitPanel {
@@ -258,7 +276,12 @@
     /* background-color: #fff; */
     background-color: inherit;
     /* width: 30%; */
-    color: #e1a052;
+    /* color: #e1a052; */
+    color: #db2777;
+  }
+
+  code {
+    color: #db2777 !important;
   }
 
   #djCbv summary {

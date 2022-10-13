@@ -4,6 +4,7 @@ import functools
 import inspect
 import logging
 from pprint import pformat
+import re
 from typing import Any
 
 from django import get_version
@@ -35,9 +36,32 @@ def get_path(attr_module):
 
     # For site-packages paths, display path starting from /<package-name>/
     if index > -1:
-        path = path[(index - 1) + len(sp_str) :]
+        path = path[(index - 1) + len(sp_str):]
 
     return path
+
+
+def stringify_and_clean(object) -> str:
+    formatted = pformat(object)
+
+    clean_funcs = [coalesce_request, coalesce_queryset]
+
+    for func in clean_funcs:
+        formatted = func(formatted)
+
+    return formatted
+
+
+def coalesce_queryset(s: str):
+    QUERYSET_PATTERN = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
+    QUERYSET_COALESCE = "<<queryset of \g<modelName>>>"
+    return re.sub(QUERYSET_PATTERN, QUERYSET_COALESCE, s)
+
+
+def coalesce_request(s: str):
+    REQUEST_PATTERN = re.compile("<WSGIRequest: .*?>")
+    REQUEST_COALESCE = "<<request>>"
+    return re.sub(REQUEST_PATTERN, REQUEST_COALESCE, s)
 
 
 @dataclass
@@ -96,9 +120,10 @@ class InspectorMixin:
 
                 # Update function log
                 f.name = attr.__qualname__
-                f.args = str(args)
-                f.kwargs = pformat(kwargs)
-                f.ret_value = pformat(res)
+                f.args = stringify_and_clean(args)
+                f.kwargs = stringify_and_clean(kwargs)
+                f.ret_value = stringify_and_clean(res)
+
                 # Get some metadata
                 module = inspect.getmodule(attr)
                 f.ccbv_link = get_ccbv_link(module, attr)
