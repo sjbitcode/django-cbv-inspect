@@ -20,12 +20,38 @@
 
     <!-- panel content -->
     <div class="djcbv-panel-content">
+      <h4>View information</h4>
       <table>
         <thead>
           <tr>
-            <th>CBV method</th>
+            <th>View function</th>
+            <th>Method</th>
             <th>Arguments</th>
-            <th>Keyword Arguments</th>
+            <th>Keyword arguments</th>
+            <th>Path</th>
+            <th>URL name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>{{ view_path }}</code></td>
+            <td><code>{{ request_metadata.method|pprint }}</code></td>
+            <td><code>{{ args|pprint }}</code></td>
+            <td><code>{{ kwargs|pprint }}</code></td>
+            <td><code>{{ request_metadata.path|pprint }}</code></td>
+            <td><code>{{ url_name }}</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+
+      <h4>The good stuff</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>CBV methods</th>
+            <th>Arguments</th>
+            <th>Keyword arguments</th>
             <th>Return Value</th>
           </tr>
         </thead>
@@ -87,6 +113,33 @@
 
   .result {
     display: inline-block;
+  }
+
+  #djCbv {
+    /* margin: 0;
+    padding: 0;
+    min-width: 0;
+    width: auto;
+    border: 0;
+    outline: 0;
+    font-size: 12px;
+    line-height: 1.5em;
+    color: #000;
+    vertical-align: baseline;
+    background-color: transparent;
+    text-align: left;
+    text-shadow: none;
+    white-space: normal;
+    transition: none; */
+    font-family: sans-serif;
+    /* text-decoration: none !important; */
+  }
+
+  #djCbv h4 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 0.8em;
+    color: #475569;
   }
 
   #djCbvHandle {

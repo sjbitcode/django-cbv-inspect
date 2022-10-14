@@ -15,9 +15,12 @@ def render_panel(request):
 
     if hasattr(request, "_inspector_logs"):
         log_data = getattr(request, "_inspector_logs")
-    logs = log_data.get(
-        "logs", {}
-    )  # {k: v for k, v in sorted(x.items(), key=lambda item: item[1])}
+
+    logs = log_data.get("logs", {})  # {k: v for k, v in sorted(x.items(), key=lambda item: item[1])}
+    view_path = log_data.get("view_path")
+    url_name = log_data.get('url_name')
+    args = log_data.get('args')
+    kwargs = log_data.get('kwargs')
 
     # check if path is correct
     if "path" in log_data:
@@ -104,5 +107,9 @@ def render_panel(request):
             "message": "yo",
             "error_msg": error_msg,
             "request_metadata": request_metadata,
+            "view_path": view_path,
+            "url_name": url_name,
+            "args": args,
+            "kwargs": kwargs
         },
     )

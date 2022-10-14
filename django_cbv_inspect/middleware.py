@@ -35,7 +35,34 @@ class InspectorToolbar:
         self.init_logs()
 
     def init_logs(self):
-        self.request._inspector_logs = {"path": self.request.path, "logs": {}}
+        match = resolve(self.request.path)
+
+        self.request._inspector_logs = {
+            "path": self.request.path,
+            "logs": {},
+            "view_path": match._func_path,
+            "url_name": match.view_name,
+            "args": match.args,
+            "kwargs": match.kwargs
+        }
+        x = 1
+
+    def get_url_name(self):
+        match = resolve(self.request.path)
+        func, args, kwargs = match
+        # view_info["view_func"] = get_name_from_obj(func)
+        # view_info["view_args"] = args
+        # view_info["view_kwargs"] = kwargs
+
+        if getattr(match, "url_name", False):
+            url_name = match.url_name
+            if match.namespaces:
+                url_name = ":".join([*match.namespaces, url_name])
+        else:
+            url_name = "<unavailable>"
+
+        return url_name
+        # view_info["view_urlname"] = url_name
 
     def clear_session_logs(self):
         if "inspector_logs" in self.request.session:
@@ -98,6 +125,8 @@ class InspectorMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if hasattr(view_func, "view_class"):
+            # request._inspector_logs["view_path"] = f"{view_func.__module__}.{view_func.view_class.__name__}"
+
             if InspectorMixin not in view_func.view_class.__bases__:
                 original_bases = view_func.view_class.__bases__
                 new_bases = (InspectorMixin, *original_bases)

@@ -157,6 +157,6 @@ class InspectorMixin:
                 )
 
                 return res
-
+            
             return wrapper
         return attr
