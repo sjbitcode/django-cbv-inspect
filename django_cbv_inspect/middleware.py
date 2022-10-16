@@ -37,13 +37,25 @@ class InspectorToolbar:
     def init_logs(self):
         match = resolve(self.request.path)
 
+        base_classes = []
+        view_cls_bases = list(match.func.view_class.__bases__)
+
+        if InspectorMixin in view_cls_bases:
+            view_cls_bases.remove(InspectorMixin)
+
+        for cls in view_cls_bases:
+            base_classes.append(
+                f"{cls.__module__}.{cls.__name__}"
+            )
+
         self.request._inspector_logs = {
             "path": self.request.path,
             "logs": {},
             "view_path": match._func_path,
             "url_name": match.view_name,
             "args": match.args,
-            "kwargs": match.kwargs
+            "kwargs": match.kwargs,
+            "base_classes": base_classes,
         }
         x = 1
 

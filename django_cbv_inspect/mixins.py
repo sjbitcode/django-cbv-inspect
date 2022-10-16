@@ -5,9 +5,11 @@ import inspect
 import logging
 from pprint import pformat
 import re
-from typing import Any
+import sys
+from typing import Any, Callable
 
 from django import get_version
+from django.template import base
 from django.utils.functional import cached_property
 
 
@@ -64,6 +66,49 @@ def coalesce_request(s: str):
     return re.sub(REQUEST_PATTERN, REQUEST_COALESCE, s)
 
 
+def get_super_calls(cls, attr: Callable) -> list:
+    source = inspect.getsource(attr)
+    # SUPER_PATTERN = re.compile("(super\(.*\)\.(?P<methodName>\w+)\(.+\))")
+    SUPER_PATTERN = re.compile("(super\(.*\)\.(?P<methodName>\w+)(?P<methodSignature>\(.+\)))")
+    matches = re.findall(SUPER_PATTERN, source)
+    # base_classes = list(cls.__mro__[2:])
+    base_classes = list(cls.__mro__)
+    base_classes.remove(InspectorMixin)
+    new_matches = []
+    method_info = {}
+
+    for match in matches:  # for each super call
+        super_call = match[0]
+        method = match[1]
+        signature = match[2]
+        # need to maybe add support for nested class? https://stackoverflow.com/a/55767059
+        attr_cls = vars(sys.modules[attr.__module__])[attr.__qualname__.split('.')[0]]
+
+        if super_call.startswith("super()"):
+            for bc in base_classes[base_classes.index(attr_cls)+1:]:
+
+                if hasattr(bc, method):
+                    attr2 = getattr(bc, method)
+                    if bc.__name__ in attr2.__qualname__:
+                        # new_matches.append(match[0].replace("super()", bc.__name__, 1))
+                        method_info = {
+                            'ccbv_link': get_ccbv_link(inspect.getmodule(attr2), attr2),
+                            'method': match[0].replace("super()", bc.__name__, 1).replace(signature, ''),
+                            'signature': signature
+                        }
+                        # new_matches.append(method_info)
+                        break
+        else:
+            method_info = {
+                'ccbv_link': get_ccbv_link(inspect.getmodule(attr), attr),
+                'method': method[0].replace(signature, ''),
+                'signature': signature,
+            }
+
+    new_matches.append(method_info)
+    return new_matches
+
+
 @dataclass
 class FunctionLog:
     tab_index: int = 0
@@ -72,6 +117,7 @@ class FunctionLog:
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
     arguments: dict = field(default_factory=dict)
+    super_calls: list = field(default_factory=list)
     name: str = None
     ret_value: Any = None
     ccbv_link: str = None
@@ -131,6 +177,7 @@ class InspectorMixin:
 
                 f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
                 f.arguments = pformat(inspect.getcallargs(attr, *args, **kwargs))
+                f.super_calls = get_super_calls(self.__class__, attr)
                 # import pdb
 
                 # pdb.set_trace()
@@ -157,6 +204,6 @@ class InspectorMixin:
                 )
 
                 return res
-            
+
             return wrapper
         return attr
