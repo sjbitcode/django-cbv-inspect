@@ -1,5 +1,6 @@
 import logging
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 
 from django.views.generic import (
     ListView,
@@ -30,17 +31,24 @@ class BookListView(FooMixin, ListView):
         logger.error('Getting favorite book!')
         return "Harry Potter"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["now"] = "the time right now"
-        logger.error('In context data!')
-        fav_book = self.get_favorite_book()
-        context["fav_book"] = fav_book
-        return context
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context["now"] = "the time right now"
+    #     logger.error('In context data!')
+    #     fav_book = self.get_favorite_book()
+    #     context["fav_book"] = fav_book
+
+    #     ctx_object_name = super().get_context_object_name(Book.objects.all())
+    #     print(ctx_object_name)
+    #     return context
 
 
 def hello(request):
     return HttpResponse('yo')
+
+
+def hello_html(request):
+    return render(request, 'books/hello.html', {})
 
 
 def jsontest(request):

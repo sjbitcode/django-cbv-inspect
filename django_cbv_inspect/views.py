@@ -22,6 +22,7 @@ def render_panel(request):
     args = log_data.get('args')
     kwargs = log_data.get('kwargs')
     base_classes = log_data.get('base_classes')
+    mro = log_data.get("mro")
 
     # check if path is correct
     if "path" in log_data:
@@ -112,6 +113,7 @@ def render_panel(request):
             "url_name": url_name,
             "args": args,
             "kwargs": kwargs,
-            "base_classes": base_classes
+            "base_classes": base_classes,
+            "mro": mro,
         },
     )

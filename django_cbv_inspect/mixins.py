@@ -9,7 +9,6 @@ import sys
 from typing import Any, Callable
 
 from django import get_version
-from django.template import base
 from django.utils.functional import cached_property
 
 
@@ -17,18 +16,29 @@ logger = logging.getLogger(__name__)
 INSPECT_LOGS = {}
 
 
-def get_ccbv_link(attr_module, attr_func):
-    module: str = attr_module.__name__
+def get_ccbv_link(attr_module, attr):
+    """
+    attr_module: str|module
+    attr: function|class
+    is_method: bool
+    """
+
+    module = attr_module if isinstance(attr_module, str) else attr_module.__name__
     from_generic = module.startswith("django.views.generic")
     from_auth = module.startswith("django.contrib.auth.views")
+    ccbv_link = ""
 
     if from_generic or from_auth:
         version = get_version().rsplit(".", 1)[0]
-        class_name, method_name = attr_func.__qualname__.split(".", 1)
-        # https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
-        ccbv_link = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
-        return ccbv_link
-    return ""
+
+        if inspect.isroutine(attr):
+            class_name, method_name = attr.__qualname__.split(".", 1)
+            # https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
+            ccbv_link = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
+        elif inspect.isclass(attr):
+            ccbv_link = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{attr.__name__}"
+
+    return ccbv_link
 
 
 def get_path(attr_module):
@@ -90,11 +100,12 @@ def get_super_calls(cls, attr: Callable) -> list:
                 if hasattr(bc, method):
                     attr2 = getattr(bc, method)
                     if bc.__name__ in attr2.__qualname__:
-                        # new_matches.append(match[0].replace("super()", bc.__name__, 1))
+
                         method_info = {
                             'ccbv_link': get_ccbv_link(inspect.getmodule(attr2), attr2),
-                            'method': match[0].replace("super()", bc.__name__, 1).replace(signature, ''),
-                            'signature': signature
+                            # 'method': match[0].replace("super()", bc.__name__, 1).replace(signature, ''),
+                            'method': f"{bc.__name__}.{method}",
+                            'signature': str(inspect.signature(attr2))
                         }
                         # new_matches.append(method_info)
                         break
@@ -105,7 +116,8 @@ def get_super_calls(cls, attr: Callable) -> list:
                 'signature': signature,
             }
 
-    new_matches.append(method_info)
+        new_matches.append(method_info)
+
     return new_matches
 
 

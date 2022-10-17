@@ -4,7 +4,7 @@ from django.http import HttpRequest
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
 
-from django_cbv_inspect.mixins import InspectorMixin
+from django_cbv_inspect.mixins import InspectorMixin, get_ccbv_link
 
 from bs4 import BeautifulSoup
 
@@ -34,19 +34,39 @@ class InspectorToolbar:
         self.clear_session_logs()
         self.init_logs()
 
+    def get_view_base_classes(self, view_func):
+        if hasattr(view_func, 'view_class'):
+            base_classes = []
+            view_cls_bases = list(view_func.view_class.__bases__)
+
+            if InspectorMixin in view_cls_bases:
+                view_cls_bases.remove(InspectorMixin)
+
+            for cls in view_cls_bases:
+                cls_info = {
+                    'ccbv_link': get_ccbv_link(cls.__module__, cls),
+                    'name': f"{cls.__module__}.{cls.__name__}"
+                }
+                base_classes.append(cls_info)
+
+            return base_classes
+
+    def get_mro(self, view_func):
+        if hasattr(view_func, 'view_class'):
+            mro = []
+
+            for cls in view_func.view_class.__mro__:
+                if cls is not InspectorMixin:
+                    cls_info = {
+                        'ccbv_link': get_ccbv_link(cls.__module__, cls),
+                        'name': f"{cls.__module__}.{cls.__name__}"
+                    }
+                    mro.append(cls_info)
+
+            return mro
+
     def init_logs(self):
         match = resolve(self.request.path)
-
-        base_classes = []
-        view_cls_bases = list(match.func.view_class.__bases__)
-
-        if InspectorMixin in view_cls_bases:
-            view_cls_bases.remove(InspectorMixin)
-
-        for cls in view_cls_bases:
-            base_classes.append(
-                f"{cls.__module__}.{cls.__name__}"
-            )
 
         self.request._inspector_logs = {
             "path": self.request.path,
@@ -55,7 +75,8 @@ class InspectorToolbar:
             "url_name": match.view_name,
             "args": match.args,
             "kwargs": match.kwargs,
-            "base_classes": base_classes,
+            "base_classes": self.get_view_base_classes(match.func),
+            "mro": self.get_mro(match.func),
         }
         x = 1
 
