@@ -29,9 +29,7 @@ def is_inspector_request(request):
 
 class InspectorToolbar:
     def __init__(self, request: HttpRequest):
-        self.logs = self.get_logs()
         self.request = request
-        self.clear_session_logs()
         self.init_logs()
 
     def get_view_base_classes(self, view_func):
@@ -97,19 +95,6 @@ class InspectorToolbar:
         return url_name
         # view_info["view_urlname"] = url_name
 
-    def clear_session_logs(self):
-        if "inspector_logs" in self.request.session:
-            del self.request.session["inspector_logs"]
-        self.request.session["inspector_logs"] = {"path": self.request.path, "logs": {}}
-
-    def get_logs(self):
-        from django_cbv_inspect.mixins import INSPECT_LOGS
-
-        if INSPECT_LOGS:
-            logger.warning("logs are non-empty! clearing now...")
-            INSPECT_LOGS.clear()
-        return INSPECT_LOGS
-
     def get_content(self):
         from django_cbv_inspect import views
 
@@ -139,9 +124,6 @@ class InspectorMiddleware:
         # if resolver_match.namespaces[-1] == 'inspector':
         #     print('YES ITS A CBV INSPECTOR REQUEST')
         #     return response
-
-        # for log in INSPECT_LOGS:
-        #     pprint(INSPECT_LOGS[log])
 
         if hasattr(response, "content"):
             soup = BeautifulSoup(response.content.decode(), "html.parser")

@@ -13,7 +13,6 @@ from django.utils.functional import cached_property
 
 
 logger = logging.getLogger(__name__)
-INSPECT_LOGS = {}
 
 
 def get_ccbv_link(attr_module, attr):
@@ -207,8 +206,6 @@ class InspectorMixin:
 
                 # Store function log
                 self.request._inspector_logs["logs"][f.ordering] = dataclasses.asdict(f)
-                global INSPECT_LOGS
-                INSPECT_LOGS[f.ordering] = f
 
                 self.tab_index -= 1
                 print(
