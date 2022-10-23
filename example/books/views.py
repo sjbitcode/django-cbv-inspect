@@ -31,16 +31,17 @@ class BookListView(FooMixin, ListView):
         logger.error('Getting favorite book!')
         return "Harry Potter"
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context["now"] = "the time right now"
-    #     logger.error('In context data!')
-    #     fav_book = self.get_favorite_book()
-    #     context["fav_book"] = fav_book
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["now"] = "the time right now"
+        logger.error('In context data!')
+        fav_book = self.get_favorite_book()
 
-    #     ctx_object_name = super().get_context_object_name(Book.objects.all())
-    #     print(ctx_object_name)
-    #     return context
+        context["fav_book"] = fav_book
+
+        # ctx_object_name = super().get_context_object_name(Book.objects.all())
+        # print(ctx_object_name)
+        return context
 
 
 def hello(request):
@@ -85,4 +86,3 @@ class AuthorCreateView(CreateView):
     model = Author
     form_class = AuthorForm
     success_url = reverse_lazy("books:books")
-

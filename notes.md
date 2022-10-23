@@ -1,6 +1,6 @@
 ## Inspect what class `super` calls
 - Use some regex to inspect a method definition, and see whether there's a super() call in it.
-  - If its `super().` then call `super(BookListView.__mro__[2], self).get_context_data` where `__mro__[2]` refers to the first base class not including the InspectorMixin.
+  - If its `super().` then call `super(BookListView.__mro__[2], self).get_context_data` where `__mro__[2]` refers to the first base class not including the InspectorMixin.****
   - if its `super(blabla)`, then just see what that returns without calling the function, ex. `super(Foo, self).get_context_data`
 
 ```
@@ -50,11 +50,78 @@
 - working toggle buttons
 - JS links
   - https://bobbyhadz.com/blog/javascript-get-element-by-data-attribute
+  
+### 08/22
+- add panel handler button
+- when click handler button, show logs
+- 
+
 
 ## Deadline - 09/02
 - review backend logic
   - clean up middleware, mixin, view
 - style logs
-  - show toolbar to click and view logs
+  - show toolbar to click and view logs ✅
+    - organize panel page better? paneltitle and panelbody, sort out kinks there
   - css
 - test!
+
+## 10/9
+- deadline obv not reached, watever...progress is GOOD!
+- stringifying args, kwargs, return values
+  - checking instance is ok, but what about nested objects that are querysets?
+  - maybe do a regex replace when stringifying?
+    - check for repr/str of queryset/request
+- super() introspection via regex
+
+## 10/13
+- stringified args, kwargs, return values ✅
+- fix scroll and fixed nav issue ✅
+- need to do:
+  - JS toggle args/kwargs/returnvalue for all (and individual?)
+  - super() introspection
+
+
+## 10/16
+- super() introspection ✅
+- JS toggle columns for all ✅
+- need to do:
+  - add ccbv link in "Base classes" column in View information section
+  - fix +/- when toggle column visibility
+  - add MRO? maybe underneath the Call chain section?
+
+## 10/17
+- add ccbv link in "Base classes" column in View information section ✅
+- fix +/- when toggle column visibility ✅
+- add MRO? maybe underneath the Call chain section? ✅
+- need to do:
+  - what do display when its a FBV? (like djdt "no GET data"?) ✅
+  - plan cleanup
+    - get rid of global dict and request session (all prior attempts of storing logs) ✅
+    - inspect signature code can be cleaned up?
+    - ccbv link, get module from inspect can be cleaned up?
+    - djCbv view plucking values from request._inspector_logs 😬
+    - beautiful soup vs regex in middleware?
+    - take big picture look at:
+      - mixin
+      - middleware
+      - view
+      - template
+    - write tests!
+
+## djCBVInspect attributes
+### aka `request._djcbv_inspect_metadata`
+
+| Attribute | Panel Location | Description |
+|-----------|-------------| ------------|
+| path | View Information |  |
+| logs | CBV Call chain |  |
+| view_path | View Information |  |
+| url_name | View Information |  |
+| args | View Information |  |
+| kwargs | View Information |  |
+| base_classes | View Information |  |
+| mro | MRO |  |
+| method |  |  |
+| path |  |  |
+| body |  |  |
