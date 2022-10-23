@@ -82,7 +82,7 @@ def get_super_calls(cls, attr: Callable) -> list:
     matches = re.findall(SUPER_PATTERN, source)
     # base_classes = list(cls.__mro__[2:])
     base_classes = list(cls.__mro__)
-    base_classes.remove(InspectorMixin)
+    base_classes.remove(DjCBVInspectMixin)
     new_matches = []
     method_info = {}
 
@@ -136,7 +136,7 @@ class FunctionLog:
     signature: str = None
 
 
-class InspectorMixin:
+class DjCBVInspectMixin:
     tab_index = 0
     func_order = 1
 
