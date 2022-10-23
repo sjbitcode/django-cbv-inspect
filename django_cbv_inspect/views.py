@@ -7,36 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 def render_panel(request):
-    # log_data = request.session.get('inspector_logs', {})
 
-    log_data = {}
-    request_metadata = {}
-    error_msg = ""
-
-    if hasattr(request, "_inspector_logs"):
-        log_data = getattr(request, "_inspector_logs")
-
-    logs = log_data.get("logs", {})  # {k: v for k, v in sorted(x.items(), key=lambda item: item[1])}
-    view_path = log_data.get("view_path")
-    url_name = log_data.get('url_name')
-    args = log_data.get('args')
-    kwargs = log_data.get('kwargs')
-    base_classes = log_data.get('base_classes')
-    mro = log_data.get("mro")
-
-    # check if path is correct
-    if "path" in log_data:
-        if log_data["path"] != request.path:
-            error_msg = f'{log_data["path"]} not equal to current path {request.path}'
-            logger.error(error_msg)
-            logs = {}
-
-    # request metadata
-    request_metadata["method"] = request.method
-    request_metadata["path"] = request.get_full_path()
-    request_metadata["body"] = request.POST.copy() or request.GET.copy()
+    djcbv_inspect_metadata = getattr(request, "_djcbv_inspect_metadata", {})
+    ctx_data = {**djcbv_inspect_metadata}
 
     # sort logs
+    logs = ctx_data["logs"]
     sorted_logs = dict(sorted(logs.items(), key=lambda item: item[0]))
 
     # add is_parent log attributes
@@ -101,19 +77,6 @@ def render_panel(request):
 
     #     except KeyError:
     #         pass
+    ctx_data.update({"logs": sorted_logs})
 
-    return render_to_string(
-        "django_cbv_inspect/cbv_logs2.html",
-        {
-            "logs": sorted_logs,
-            "message": "yo",
-            "error_msg": error_msg,
-            "request_metadata": request_metadata,
-            "view_path": view_path,
-            "url_name": url_name,
-            "args": args,
-            "kwargs": kwargs,
-            "base_classes": base_classes,
-            "mro": mro,
-        },
-    )
+    return render_to_string("django_cbv_inspect/cbv_logs2.html", ctx_data)

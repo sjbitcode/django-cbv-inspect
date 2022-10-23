@@ -114,14 +114,15 @@
 
 | Attribute | Panel Location | Description |
 |-----------|-------------| ------------|
-| path | View Information |  |
-| logs | CBV Call chain |  |
-| view_path | View Information |  |
-| url_name | View Information |  |
-| args | View Information |  |
-| kwargs | View Information |  |
-| base_classes | View Information |  |
-| mro | MRO |  |
-| method |  |  |
-| path |  |  |
-| body |  |  |
+| path | View Information | request path, ex. `/books/1` |
+| logs | CBV Call chain | dict of logs |
+| view_path | View Information | dotpath of view class, ex. `books.views.BookListView` |
+| url_name | View Information | url name, ex. `books:book_detail` |
+| args | View Information | request args, ex. `()` |
+| kwargs | View Information | request kwargs, ex. `{'pk': 1}` |
+| base_classes | View Information | dict with base class info, `name` and `ccbv_link` |
+| mro | MRO | dict with MRO classes, `name` and `ccbv_link` |
+| method | View Information | request method, ex. `GET` |
+
+- where is `request.session.inspector_logs` coming from?!
+- should Mixin be removed from CBV bases in middleware?

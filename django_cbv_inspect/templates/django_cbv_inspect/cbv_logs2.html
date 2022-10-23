@@ -14,7 +14,7 @@
 
     <!-- panel title -->
     <div class="djcbv-panel-title">
-      <h1>CBV inspect for <code>{{ request_metadata.method }} {{ request_metadata.path }}</code></h1>
+      <h1>CBV inspect for <code>{{ method }} {{ path }}</code></h1>
       <button id="djCbvExitPanel" class="cbvLogsButton">x</button>
     </div>
 
@@ -65,150 +65,157 @@
                   {% endfor %}
               {% endif %}
             </td>
-            <td><code>{{ request_metadata.method|pprint }}</code></td>
+            <td><code>{{ method|pprint }}</code></td>
             <td><code>{{ args|pprint }}</code></td>
             <td><code>{{ kwargs|pprint }}</code></td>
-            <td><code>{{ request_metadata.path|pprint }}</code></td>
+            <td><code>{{ path|pprint }}</code></td>
             <td><code>{{ url_name }}</code></td>
           </tr>
         </tbody>
       </table>
 
       <!-- <br> -->
+      {% if logs %}
+        <h4>CBV method call chain</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>CBV method</th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="arguments">-</button>
+                Arguments
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="keyword-arguments">-</button>
+                Keyword arguments
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="return-value">-</button>
+                Return value
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="super-calls">-</button>
+                Super calls
+              </th>
+            </tr>
+          </thead>
 
-      <h4>CBV method call chain</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>CBV method</th>
-            <th>
-              <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="arguments">-</button>
-              Arguments
-            </th>
-            <th>
-              <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="keyword-arguments">-</button>
-              Keyword arguments
-            </th>
-            <th>
-              <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="return-value">-</button>
-              Return value
-            </th>
-            <th>
-              <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="super-calls">-</button>
-              Super calls
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {% for key, val in logs.items %}
-            <tr class="cbvLogEntry {{ val.parent }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
-              <td>
-                <div style="padding-left: {{val.padding}}px;">
-                  {% if val.is_parent %}
-                    <button type="button" class="newToggleButton cbvLogsButton">-</button>
-                  {% endif %}
-                  {% if val.ccbv_link %}
-                    <a href="{{ val.ccbv_link }}" target="_blank">
-                      <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>   
-                    </a>
-                  {% else %}
-                    <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>
-                  {% endif %}
-                </div>
-              </td>
-              
-              <td class="djcbv-show-arguments" data-cbv-col="arguments">
-                <code>{{ val.args }}</code>
-                <!-- <details class="djcbv-show-arguments djcbv-hidden">
-                  <summary>toggle args</summary>
-                  <code>{{ val.arguments }}</code>
-                </details> -->
-              </td>
-
-              <td class="djcbv-show-arguments" data-cbv-col="keyword-arguments">
-                <code>{{ val.kwargs }}</code>
-                <!-- <details class="djcbv-show-arguments djcbv-hidden">
-                  <summary>toggle args</summary>
-                  <code>{{ val.arguments }}</code>
-                </details> -->
-              </td>
-      
-              <td class="djcbv-show-arguments" data-cbv-col="return-value">
-                <code>{{ val.ret_value }}</code>
-                <!-- <details class="djcbv-show-result djcbv-hidden">
-                  <summary>toggle return value</summary>
-                  <code>{{ val.ret_value }}</code>
-                </details> -->
-              </td>
-
-              <td class="djcbv-show-arguments" data-cbv-col="super-calls">
-                {% if val.super_calls %}
-                  {% if val.super_calls|length > 1 %}
-                    <ul>
-                    {% for call in val.super_calls %}
-                      <li>
-                      <!-- <li><code>{{ call }}</code></li> -->
-                      {% if call.ccbv_link %}
-                        <a href="{{ call.ccbv_link }}" target="_blank">
-                          <span class="djcbv-method">{{ call.method }}</span><span class="djcbv-signature">{{ call.signature }}</span>
-                        </a>
-                      {% else %}
-                      <span class="djcbv-method">{{ call.method }}</span><span class="djcbv-signature">{{ call.signature }}</span>
-                      {% endif %}
-                      </li>
-                    {% endfor %}
-                    </ul>
-
-                  {% else %}
-
-                    <!-- <code>{{ val.super_calls.0 }}</code>     -->
-                    {% if val.super_calls.0.ccbv_link %}
-                      <a href="{{ val.super_calls.0.ccbv_link }}" target="_blank">
-                        <span class="djcbv-method">{{ val.super_calls.0.method }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+          <tbody>
+            {% for key, val in logs.items %}
+              <tr class="cbvLogEntry {{ val.parent }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
+                <td>
+                  <div style="padding-left: {{val.padding}}px;">
+                    {% if val.is_parent %}
+                      <button type="button" class="newToggleButton cbvLogsButton">-</button>
+                    {% endif %}
+                    {% if val.ccbv_link %}
+                      <a href="{{ val.ccbv_link }}" target="_blank">
+                        <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>   
                       </a>
                     {% else %}
-                      <span class="djcbv-method">{{ val.super_calls.0.method }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                      <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>
                     {% endif %}
+                  </div>
+                </td>
+                
+                <td class="djcbv-show-arguments" data-cbv-col="arguments">
+                  <code>{{ val.args }}</code>
+                  <!-- <details class="djcbv-show-arguments djcbv-hidden">
+                    <summary>toggle args</summary>
+                    <code>{{ val.arguments }}</code>
+                  </details> -->
+                </td>
+
+                <td class="djcbv-show-arguments" data-cbv-col="keyword-arguments">
+                  <code>{{ val.kwargs }}</code>
+                  <!-- <details class="djcbv-show-arguments djcbv-hidden">
+                    <summary>toggle args</summary>
+                    <code>{{ val.arguments }}</code>
+                  </details> -->
+                </td>
+        
+                <td class="djcbv-show-arguments" data-cbv-col="return-value">
+                  <code>{{ val.ret_value }}</code>
+                  <!-- <details class="djcbv-show-result djcbv-hidden">
+                    <summary>toggle return value</summary>
+                    <code>{{ val.ret_value }}</code>
+                  </details> -->
+                </td>
+
+                <td class="djcbv-show-arguments" data-cbv-col="super-calls">
+                  {% if val.super_calls %}
+                    {% if val.super_calls|length > 1 %}
+                      <ul>
+                      {% for call in val.super_calls %}
+                        <li>
+                        <!-- <li><code>{{ call }}</code></li> -->
+                        {% if call.ccbv_link %}
+                          <a href="{{ call.ccbv_link }}" target="_blank">
+                            <span class="djcbv-method">{{ call.method }}</span><span class="djcbv-signature">{{ call.signature }}</span>
+                          </a>
+                        {% else %}
+                        <span class="djcbv-method">{{ call.method }}</span><span class="djcbv-signature">{{ call.signature }}</span>
+                        {% endif %}
+                        </li>
+                      {% endfor %}
+                      </ul>
+
+                    {% else %}
+
+                      <!-- <code>{{ val.super_calls.0 }}</code>     -->
+                      {% if val.super_calls.0.ccbv_link %}
+                        <a href="{{ val.super_calls.0.ccbv_link }}" target="_blank">
+                          <span class="djcbv-method">{{ val.super_calls.0.method }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                        </a>
+                      {% else %}
+                        <span class="djcbv-method">{{ val.super_calls.0.method }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                      {% endif %}
+                    {% endif %}
+
                   {% endif %}
-
-                {% endif %}
-                <!-- <details class="djcbv-show-arguments djcbv-hidden">
-                  <summary>toggle args</summary>
-                  <code>{{ val.arguments }}</code>
-                </details> -->
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <h4>Method Resolution Order (MRO)</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Class</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {% for cls_dict in mro %}
+                  <!-- <details class="djcbv-show-arguments djcbv-hidden">
+                    <summary>toggle args</summary>
+                    <code>{{ val.arguments }}</code>
+                  </details> -->
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <h4>No CBV method call chain</h4>
+      {% endif %}
+      
+      {% if mro %}
+        <h4>Method Resolution Order (MRO)</h4>
+        <table>
+          <thead>
             <tr>
-              <td>{{ forloop.counter }}</td>
-              <td>
-                {% if cls_dict.ccbv_link %}
-                    <a href="{{ cls_dict.ccbv_link }}" target="_blank">
-                      <span class="djcbv-method">{{ cls_dict.name }}</span>   
-                    </a>
-                  {% else %}
-                    <span class="djcbv-method">{{ cls_dict.name }}</span>
-                  {% endif %}
-              </td>
+              <th>Order</th>
+              <th>Class</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {% for cls_dict in mro %}
+              <tr>
+                <td>{{ forloop.counter0 }}</td>
+                <td>
+                  {% if cls_dict.ccbv_link %}
+                      <a href="{{ cls_dict.ccbv_link }}" target="_blank">
+                        <span class="djcbv-method">{{ cls_dict.name }}</span>   
+                      </a>
+                    {% else %}
+                      <span class="djcbv-method">{{ cls_dict.name }}</span>
+                    {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <h4>No Method Resolution Order (MRO)</h4>
+      {% endif %}
     </div>
   </div>
 
@@ -253,6 +260,7 @@
     /* margin-top: 0.8em; */
     margin-top: 30px;
     /* color: #475569; */
+    color: #334155;
   }
 
   #djCbv ul {
@@ -314,6 +322,7 @@
     /* background-color: #eee; */
     /* background-color: #f4fbff; */
     background-color: #fff;
+    /* background-color: #eff6ff; */
     z-index: 1000000000;
     width: 100%;
     height: 100%;
@@ -342,7 +351,8 @@
     /* border: 1px solid #ffe2c4; */
     /* border: 1px solid #bae6fd; */
     /* border: 1px solid #e2e8f0; */
-    border: 1px solid #cbd5e1;
+    /* border: 1px solid #cbd5e1; */
+    border: 2px solid #e2e8f0;
     border-collapse: collapse;
     width: 100%;
     background-color: #fff;

@@ -31,7 +31,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_cbv_inspect.middleware.InspectorMiddleware",
+    "django_cbv_inspect.middleware.DjCBVInspectMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"

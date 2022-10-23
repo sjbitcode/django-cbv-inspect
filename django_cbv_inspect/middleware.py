@@ -1,19 +1,16 @@
 import logging
 import re
 
-from django.http import HttpRequest
 from django.urls import resolve
-from django.urls.exceptions import Resolver404
 
 from django_cbv_inspect.mixins import DjCBVInspectMixin, get_ccbv_link
 
 
 logger = logging.getLogger(__name__)
-# app_name = "inspector"
 
 
 class InspectorToolbar:
-    def __init__(self, request: HttpRequest):
+    def __init__(self, request):
         self.request = request
         self.init_logs()
 
@@ -51,8 +48,9 @@ class InspectorToolbar:
     def init_logs(self):
         match = resolve(self.request.path)
 
-        self.request._inspector_logs = {
+        self.request._djcbv_inspect_metadata = {
             "path": self.request.path,
+            "method": self.request.method,
             "logs": {},
             "view_path": match._func_path,
             "url_name": match.view_name,
@@ -90,19 +88,6 @@ class DjCBVInspectMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    # @staticmethod
-    # def _is_djcbv_inspect_request(request):
-    #     """
-    #     Determine if the request is for a djcbv_inspect view.
-    #     """
-    #     try:
-    #         resolver_match = request.resolver_match or resolve(
-    #             request.path, getattr(request, "urlconf", None)
-    #         )
-    #     except Resolver404:
-    #         return False
-    #     return resolver_match.namespaces and resolver_match.namespaces[-1] == app_name
-
     @staticmethod
     def _is_response_insertable(response):
         """
@@ -127,9 +112,6 @@ class DjCBVInspectMiddleware:
         i = InspectorToolbar(request)
 
         response = self.get_response(request)
-
-        # if self._is_djcbv_inspect_request(request):
-        #     return response
 
         if self._is_response_insertable(response):
             content = response.content.decode(response.charset)

@@ -205,7 +205,7 @@ class DjCBVInspectMixin:
                 # pdb.set_trace()
 
                 # Store function log
-                self.request._inspector_logs["logs"][f.ordering] = dataclasses.asdict(f)
+                self.request._djcbv_inspect_metadata["logs"][f.ordering] = dataclasses.asdict(f)
 
                 self.tab_index -= 1
                 print(
