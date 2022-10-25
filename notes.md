@@ -99,9 +99,9 @@
   - plan cleanup
     - get rid of global dict and request session (all prior attempts of storing logs) ✅
     - inspect signature code can be cleaned up?
-    - ccbv link, get module from inspect can be cleaned up?
+    - ccbv link, get module from inspect can be cleaned up? ✅
     - djCbv view plucking values from request._inspector_logs 😬
-    - beautiful soup vs regex in middleware?
+    - beautiful soup vs regex in middleware? ✅
     - take big picture look at:
       - mixin
       - middleware
@@ -124,5 +124,8 @@
 | mro | MRO | dict with MRO classes, `name` and `ccbv_link` |
 | method | View Information | request method, ex. `GET` |
 
-- where is `request.session.inspector_logs` coming from?!
+
+## 10/25
+- did some cleanup...
 - should Mixin be removed from CBV bases in middleware?
+- django rest framework support for ccbv_links?
