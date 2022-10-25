@@ -9,11 +9,13 @@ logger = logging.getLogger(__name__)
 def render_panel(request):
 
     djcbv_inspect_metadata = getattr(request, "_djcbv_inspect_metadata", {})
+
     ctx_data = {**djcbv_inspect_metadata}
 
     # sort logs
     logs = ctx_data["logs"]
-    sorted_logs = dict(sorted(logs.items(), key=lambda item: item[0]))
+    if logs:
+        sorted_logs = dict(sorted(logs.items(), key=lambda item: item[0]))
 
     # add is_parent log attributes
     # for key, val in sorted_logs.items():

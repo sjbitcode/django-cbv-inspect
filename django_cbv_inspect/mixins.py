@@ -15,39 +15,41 @@ from django.utils.functional import cached_property
 logger = logging.getLogger(__name__)
 
 
-def get_ccbv_link(attr_module, attr):
+def get_ccbv_link(attr):
     """
     attr_module: str|module
     attr: function|class
     is_method: bool
+
+    # older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard, but we're skipping those.
     """
 
-    module = attr_module if isinstance(attr_module, str) else attr_module.__name__
+    module = attr.__module__
     from_generic = module.startswith("django.views.generic")
     from_auth = module.startswith("django.contrib.auth.views")
-    ccbv_link = ""
 
     if from_generic or from_auth:
         version = get_version().rsplit(".", 1)[0]
 
-        if inspect.isroutine(attr):
+        if inspect.isroutine(attr):  # function or bound method?
             class_name, method_name = attr.__qualname__.split(".", 1)
             # https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
-            ccbv_link = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
+            return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
         elif inspect.isclass(attr):
-            ccbv_link = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{attr.__name__}"
-
-    return ccbv_link
+            return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{attr.__name__}"
 
 
-def get_path(attr_module):
-    path = attr_module.__file__
+def get_path(attr):
+    """
+    Returns file path of a module.
+    """
+    path = inspect.getfile(attr)
     sp_str = "/site-packages/"
     index = path.find(sp_str)
 
     # For site-packages paths, display path starting from /<package-name>/
     if index > -1:
-        path = path[(index - 1) + len(sp_str):]
+        path = path[index + len(sp_str) - 1:]
 
     return path
 
@@ -63,16 +65,16 @@ def stringify_and_clean(object) -> str:
     return formatted
 
 
-def coalesce_queryset(s: str):
-    QUERYSET_PATTERN = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
-    QUERYSET_COALESCE = "<<queryset of \g<modelName>>>"
-    return re.sub(QUERYSET_PATTERN, QUERYSET_COALESCE, s)
-
-
 def coalesce_request(s: str):
-    REQUEST_PATTERN = re.compile("<WSGIRequest: .*?>")
-    REQUEST_COALESCE = "<<request>>"
-    return re.sub(REQUEST_PATTERN, REQUEST_COALESCE, s)
+    pattern = re.compile("<WSGIRequest: .*?>")
+    coalesce_str = "<<request>>"
+    return re.sub(pattern, coalesce_str, s)
+
+
+def coalesce_queryset(s: str):
+    pattern = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
+    coalesce_str = "<<queryset of \g<modelName>>>"
+    return re.sub(pattern, coalesce_str, s)
 
 
 def get_super_calls(cls, attr: Callable) -> list:
@@ -101,7 +103,7 @@ def get_super_calls(cls, attr: Callable) -> list:
                     if bc.__name__ in attr2.__qualname__:
 
                         method_info = {
-                            'ccbv_link': get_ccbv_link(inspect.getmodule(attr2), attr2),
+                            'ccbv_link': get_ccbv_link(attr2),
                             # 'method': match[0].replace("super()", bc.__name__, 1).replace(signature, ''),
                             'method': f"{bc.__name__}.{method}",
                             'signature': str(inspect.signature(attr2))
@@ -110,7 +112,7 @@ def get_super_calls(cls, attr: Callable) -> list:
                         break
         else:
             method_info = {
-                'ccbv_link': get_ccbv_link(inspect.getmodule(attr), attr),
+                'ccbv_link': get_ccbv_link(attr),
                 'method': method[0].replace(signature, ''),
                 'signature': signature,
             }
@@ -182,9 +184,8 @@ class DjCBVInspectMixin:
                 f.ret_value = stringify_and_clean(res)
 
                 # Get some metadata
-                module = inspect.getmodule(attr)
-                f.ccbv_link = get_ccbv_link(module, attr)
-                f.path = get_path(module)
+                f.ccbv_link = get_ccbv_link(attr)
+                f.path = get_path(attr)
 
                 f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
                 f.arguments = pformat(inspect.getcallargs(attr, *args, **kwargs))

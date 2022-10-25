@@ -24,7 +24,7 @@ class InspectorToolbar:
 
             for cls in view_cls_bases:
                 cls_info = {
-                    'ccbv_link': get_ccbv_link(cls.__module__, cls),
+                    'ccbv_link': get_ccbv_link(cls),
                     'name': f"{cls.__module__}.{cls.__name__}"
                 }
                 base_classes.append(cls_info)
@@ -38,7 +38,7 @@ class InspectorToolbar:
             for cls in view_func.view_class.__mro__:
                 if cls is not DjCBVInspectMixin:
                     cls_info = {
-                        'ccbv_link': get_ccbv_link(cls.__module__, cls),
+                        'ccbv_link': get_ccbv_link(cls),
                         'name': f"{cls.__module__}.{cls.__name__}"
                     }
                     mro.append(cls_info)
@@ -60,23 +60,6 @@ class InspectorToolbar:
             "mro": self.get_mro(match.func),
         }
         x = 1
-
-    def get_url_name(self):
-        match = resolve(self.request.path)
-        func, args, kwargs = match
-        # view_info["view_func"] = get_name_from_obj(func)
-        # view_info["view_args"] = args
-        # view_info["view_kwargs"] = kwargs
-
-        if getattr(match, "url_name", False):
-            url_name = match.url_name
-            if match.namespaces:
-                url_name = ":".join([*match.namespaces, url_name])
-        else:
-            url_name = "<unavailable>"
-
-        return url_name
-        # view_info["view_urlname"] = url_name
 
     def get_content(self):
         from django_cbv_inspect import views
@@ -130,11 +113,11 @@ class DjCBVInspectMiddleware:
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        # insert djcbv mixin if class-based view
         if hasattr(view_func, "view_class"):
             if DjCBVInspectMixin not in view_func.view_class.__bases__:
-                initial_bases_classes = view_func.view_class.__bases__
                 view_func.view_class.__bases__ = (
                     DjCBVInspectMixin,
-                    *initial_bases_classes
+                    *view_func.view_class.__bases__
                 )
         return
