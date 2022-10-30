@@ -59,12 +59,11 @@ class InspectorToolbar:
             "base_classes": self.get_view_base_classes(match.func),
             "mro": self.get_mro(match.func),
         }
-        x = 1
 
     def get_content(self):
         from django_cbv_inspect import views
 
-        return views.render_panel(self.request)
+        return views.render_djcbv_panel(self.request)
 
 
 class DjCBVInspectMiddleware:

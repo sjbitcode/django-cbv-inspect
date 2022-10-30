@@ -131,16 +131,23 @@ class FunctionLog:
     kwargs: dict = field(default_factory=dict)
     arguments: dict = field(default_factory=dict)
     super_calls: list = field(default_factory=list)
+    is_parent: bool = False
+    parent_list: list = field(default_factory=list)
     name: str = None
     ret_value: Any = None
     ccbv_link: str = None
     path: str = None
     signature: str = None
 
+    @property
+    def parents(self):
+        return " ".join(self.parent_list)
+
 
 class DjCBVInspectMixin:
     tab_index = 0
     func_order = 1
+    DJCBV_LOGS = {}
 
     @cached_property
     def get_whitelisted_callables(self):
@@ -171,42 +178,54 @@ class DjCBVInspectMixin:
                 f.ordering = self.func_order
                 f.tab_index = self.tab_index
                 f.padding = f.tab_index * 30
+                self.DJCBV_LOGS[f.ordering] = f
+
+                # The following try/except sets parents and parent statuses on the current and prior log, respectively.
+                try:
+                    prior_log = self.DJCBV_LOGS[f.ordering-1]
+
+                    # is prior log a parent of current log?
+                    if prior_log.tab_index < f.tab_index:
+                        prior_log.is_parent = True
+                        f.parent_list.append(f"cbvInspect_{prior_log.ordering}_{prior_log.tab_index}")
+
+                        # copy the parent's parents and assign to current log
+                        if prior_log.parent_list:
+                            f.parent_list = prior_log.parent_list + f.parent_list
+
+                    # if prior log not a parent, then check previous logs to find any parents
+                    else:
+                        # get logs keys up to the current log
+                        ancestor_log_keys = list(range(1, f.ordering))
+
+                        # iterate over list backwards to get the closest parent faster
+                        for key in ancestor_log_keys[::-1]:
+                            ancestor_log = self.DJCBV_LOGS[key]
+
+                            # if ancestor log is current log's legitimate ancestor, take its parents and stop iteration
+                            if ancestor_log.is_parent and ancestor_log.tab_index < f.tab_index:
+                                f.parent_list = ancestor_log.parent_list + [f"cbvInspect_{ancestor_log.ordering}_{ancestor_log.tab_index}"]
+                                break
+                except KeyError:
+                    pass
 
                 # Prep for next call
                 self.tab_index += 1
                 self.func_order += 1
+
                 res = attr(*args, **kwargs)
 
-                # Update function log
+                f.ret_value = stringify_and_clean(res)
                 f.name = attr.__qualname__
                 f.args = stringify_and_clean(args)
                 f.kwargs = stringify_and_clean(kwargs)
-                f.ret_value = stringify_and_clean(res)
-
-                # Get some metadata
+                f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
                 f.ccbv_link = get_ccbv_link(attr)
                 f.path = get_path(attr)
-
-                f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
-                f.arguments = pformat(inspect.getcallargs(attr, *args, **kwargs))
                 f.super_calls = get_super_calls(self.__class__, attr)
-                # import pdb
 
-                # pdb.set_trace()
-                # func_signature = signature(attr)
-                # bounded_args = func_signature.bind(*args, **kwargs)
-                # bounded_args.apply_defaults()
-                # f.signature = str(func_signature)
-                # f.bound_args = str(bounded_args.arguments)
-
-                # print(f.signature)
-                # print(f.bound_args)
-                # import pdb
-
-                # pdb.set_trace()
-
-                # Store function log
-                self.request._djcbv_inspect_metadata["logs"][f.ordering] = dataclasses.asdict(f)
+                # update entry
+                self.request._djcbv_inspect_metadata["logs"][f.ordering] = f
 
                 self.tab_index -= 1
                 print(

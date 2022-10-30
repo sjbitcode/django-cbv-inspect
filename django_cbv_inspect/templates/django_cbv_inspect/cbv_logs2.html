@@ -106,7 +106,7 @@
 
           <tbody>
             {% for key, val in logs.items %}
-              <tr class="cbvLogEntry {{ val.parent }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
+              <tr class="cbvLogEntry {{ val.parents }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
                 <td>
                   <div style="padding-left: {{val.padding}}px;">
                     {% if val.is_parent %}
