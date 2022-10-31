@@ -129,3 +129,9 @@
 - did some cleanup...
 - should Mixin be removed from CBV bases in middleware?
 - django rest framework support for ccbv_links?
+
+# 10/30
+- move parent logic from view to mixins
+- TODO:
+  - drf ccbv_links
+  - reminder to make tests for inspect.ismethod, isfunction, isroutine

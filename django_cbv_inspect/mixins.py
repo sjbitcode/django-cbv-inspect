@@ -150,7 +150,7 @@ class DjCBVInspectMixin:
     DJCBV_LOGS = {}
 
     @cached_property
-    def get_whitelisted_callables(self):
+    def allowed_callables(self):
         cbv_funcs = list(
             filter(
                 lambda x: not x[0].startswith("__"),
@@ -165,7 +165,7 @@ class DjCBVInspectMixin:
         if (
             callable(attr)
             and name != "__class__"
-            and attr.__name__ in self.get_whitelisted_callables
+            and name in self.allowed_callables
         ):
             tab = "\t"
             f = FunctionLog()
