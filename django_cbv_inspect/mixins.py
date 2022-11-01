@@ -77,46 +77,48 @@ def coalesce_queryset(s: str):
     return re.sub(pattern, coalesce_str, s)
 
 
-def get_super_calls(cls, attr: Callable) -> list:
+def get_cls_from_attr(attr):
+    # reference https://stackoverflow.com/a/55767059
+    attr_cls = vars(inspect.getmodule(attr))[attr.__qualname__.rsplit('.', 1)[0]]
+
+    return attr_cls
+
+
+def get_sourcecode(attr):
     source = inspect.getsource(attr)
-    # SUPER_PATTERN = re.compile("(super\(.*\)\.(?P<methodName>\w+)\(.+\))")
-    SUPER_PATTERN = re.compile("(super\(.*\)\.(?P<methodName>\w+)(?P<methodSignature>\(.+\)))")
+
+    # remove docstring if it exists
+    if attr.__doc__:
+        source = source.replace(attr.__doc__, '', 1)
+
+    return re.sub(re.compile(r'#.*?\n'), '', source)
+
+
+def get_super_calls(cls, attr: Callable) -> list:
+    source = get_sourcecode(attr)
+    SUPER_PATTERN = re.compile(r"(super\(.*\)\.(?P<methodName>\w+)(?P<methodSignature>\(.*\)))")  # this matches all including commented!!
     matches = re.findall(SUPER_PATTERN, source)
-    # base_classes = list(cls.__mro__[2:])
-    base_classes = list(cls.__mro__)
-    base_classes.remove(DjCBVInspectMixin)
+    base_classes = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", cls.__mro__))
     new_matches = []
     method_info = {}
 
     for match in matches:  # for each super call
-        super_call = match[0]
-        method = match[1]
-        signature = match[2]
-        # need to maybe add support for nested class? https://stackoverflow.com/a/55767059
-        attr_cls = vars(sys.modules[attr.__module__])[attr.__qualname__.split('.')[0]]
+        super_call, method_name, arguments = match
+        attr_cls = get_cls_from_attr(attr)
 
-        if super_call.startswith("super()"):
-            for bc in base_classes[base_classes.index(attr_cls)+1:]:
+        for bc in base_classes[base_classes.index(attr_cls)+1:]:  # remaining classes
 
-                if hasattr(bc, method):
-                    attr2 = getattr(bc, method)
-                    if bc.__name__ in attr2.__qualname__:
+            if hasattr(bc, method_name):
+                attr2 = getattr(bc, method_name)
 
-                        method_info = {
-                            'ccbv_link': get_ccbv_link(attr2),
-                            # 'method': match[0].replace("super()", bc.__name__, 1).replace(signature, ''),
-                            'method': f"{bc.__name__}.{method}",
-                            'signature': str(inspect.signature(attr2))
-                        }
-                        # new_matches.append(method_info)
-                        break
-        else:
-            method_info = {
-                'ccbv_link': get_ccbv_link(attr),
-                'method': method[0].replace(signature, ''),
-                'signature': signature,
-            }
+                if bc is get_cls_from_attr(attr2):
 
+                    method_info = {
+                        'ccbv_link': get_ccbv_link(attr2),
+                        'method': attr2.__qualname__,
+                        'signature': str(inspect.signature(attr2))
+                    }
+                    break
         new_matches.append(method_info)
 
     return new_matches
