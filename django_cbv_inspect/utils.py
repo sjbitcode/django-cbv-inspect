@@ -1,9 +1,43 @@
+from dataclasses import dataclass
 import inspect
+import logging
 from pprint import pformat
 import re
 from typing import Any, Callable, Dict, List, Type, Union, Optional
 
 from django import get_version
+from django.http import HttpRequest
+
+from django_cbv_inspect import mixins
+
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DjCBVClassOrMethodInfo:
+    ccbv_link: str = None
+    name: str = None
+    signature: str = None
+
+
+def collect_parent_classes(view_func, cls_attr):
+    """
+    Iterate over view.func.cls_attr and return all classes except DjCBVInspectMixin
+    """
+    if hasattr(view_func, 'view_class'):
+        classes = []
+
+        for cls in getattr(view_func.view_class, cls_attr, []):
+            if cls is not mixins.DjCBVInspectMixin:
+                classes.append(
+                    DjCBVClassOrMethodInfo(
+                        ccbv_link=get_ccbv_link(cls),
+                        name=f"{cls.__module__}.{cls.__name__}"
+                    )
+                )
+
+        return classes
 
 
 def get_ccbv_link(attr: Callable) -> Optional[str]:
@@ -41,7 +75,7 @@ def get_path(attr: Callable) -> str:
     return path
 
 
-def stringify_and_clean(object: Union[tuple | Dict | List | Any]) -> str:
+def serialize_params(object: Union[tuple, Dict, List, Any]) -> str:
     formatted = pformat(object)
 
     clean_funcs = [coalesce_request, coalesce_queryset]
@@ -81,29 +115,46 @@ def get_sourcecode(attr: Callable) -> str:
 
 def get_super_calls(cls: Type, attr: Callable) -> List:
     source = get_sourcecode(attr)
-    SUPER_PATTERN = re.compile(r"(super\(.*\)\.(?P<methodName>\w+)(?P<methodSignature>\(.*\)))")  # this matches all including commented!!
+    SUPER_PATTERN = re.compile(r"(super\(.*\)\.(?P<methodName>\w+)\(.*\))")  # this matches all including commented!!
     matches = re.findall(SUPER_PATTERN, source)
     base_classes = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", cls.__mro__))
-    new_matches = []
-    method_info = {}
+    super_calls = []
 
     for match in matches:  # for each super call
-        super_call, method_name, arguments = match
+        _, method_name = match
         attr_cls = get_cls_from_attr(attr)
+        method_info = {}
 
         for bc in base_classes[base_classes.index(attr_cls)+1:]:  # remaining classes
 
+            # check if base class has method
             if hasattr(bc, method_name):
                 attr2 = getattr(bc, method_name)
 
-                if bc is get_cls_from_attr(attr2):
+                # At this point, attr2's real class can be bc or not.
+                # But we don't need to iterate until we get to attr2's real parent class,
+                # we can capture the info here and break
+                # ex. ListView hasattr get_context_data is true, but the method is defined on MultipleObjectMixin
+                # if bc is get_cls_from_attr(attr2):
+                method_info = DjCBVClassOrMethodInfo(
+                    ccbv_link=get_ccbv_link(attr2),
+                    name=attr2.__qualname__,
+                    signature=str(inspect.signature(attr2))
+                )
+                break
+        super_calls.append(method_info)
 
-                    method_info = {
-                        'ccbv_link': get_ccbv_link(attr2),
-                        'method': attr2.__qualname__,
-                        'signature': str(inspect.signature(attr2))
-                    }
-                    break
-        new_matches.append(method_info)
+    return super_calls
 
-    return new_matches
+
+def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRequest]:
+    if hasattr(instance, 'request'):
+        return instance.request
+
+    if attr.__name__ == 'setup':
+        if isinstance(args[0], HttpRequest):
+            return args[0]
+
+    for arg in args:
+        if isinstance(arg, HttpRequest):
+            return arg

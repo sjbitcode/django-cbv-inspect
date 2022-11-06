@@ -38,20 +38,7 @@
           <tr>
             <td>{{ view_path }}</td>
             <td>
-              <!-- <code>{{ base_classes|pprint }}</code> -->
-
               {% if base_classes %}
-                  <!-- {% if base_classes|length > 1 %}
-                    <ul>
-                    {% for cls_dict in base_classes %}
-                      <li>
-                        <code>{{ cls_dict.name }}</code>
-                      </li>
-                    {% endfor %}
-                    </ul>
-                  {% else %}
-                    <code>{{ base_classes.0 }}</code>    
-                  {% endif %} -->
                   {% for cls_dict in base_classes %}
                     <div>
                       {% if cls_dict.ccbv_link %}
@@ -106,7 +93,7 @@
 
           <tbody>
             {% for key, val in logs.items %}
-              <tr class="cbvLogEntry {{ val.parents }}" id="cbvInspect_{{val.ordering}}_{{val.tab_index}}" data-cbv-order="{{ val.ordering }}" data-cbv-tab-index="{{val.tab_index}}" >
+              <tr class="cbvLogEntry {{ val.parents }}" id="cbvInspect_{{val.order}}_{{val.indent}}" data-cbv-order="{{ val.order }}" data-cbv-tab-index="{{val.indent}}" >
                 <td>
                   <div style="padding-left: {{val.padding}}px;">
                     {% if val.is_parent %}
@@ -124,26 +111,14 @@
                 
                 <td class="djcbv-show-arguments" data-cbv-col="arguments">
                   <code>{{ val.args }}</code>
-                  <!-- <details class="djcbv-show-arguments djcbv-hidden">
-                    <summary>toggle args</summary>
-                    <code>{{ val.arguments }}</code>
-                  </details> -->
                 </td>
 
                 <td class="djcbv-show-arguments" data-cbv-col="keyword-arguments">
                   <code>{{ val.kwargs }}</code>
-                  <!-- <details class="djcbv-show-arguments djcbv-hidden">
-                    <summary>toggle args</summary>
-                    <code>{{ val.arguments }}</code>
-                  </details> -->
                 </td>
         
                 <td class="djcbv-show-arguments" data-cbv-col="return-value">
-                  <code>{{ val.ret_value }}</code>
-                  <!-- <details class="djcbv-show-result djcbv-hidden">
-                    <summary>toggle return value</summary>
-                    <code>{{ val.ret_value }}</code>
-                  </details> -->
+                  <code>{{ val.return_value }}</code>
                 </td>
 
                 <td class="djcbv-show-arguments" data-cbv-col="super-calls">
@@ -152,41 +127,32 @@
                       <ul>
                       {% for call in val.super_calls %}
                         <li>
-                        <!-- <li><code>{{ call }}</code></li> -->
                         {% if call.ccbv_link %}
                           <a href="{{ call.ccbv_link }}" target="_blank">
-                            <span class="djcbv-method">{{ call.method }}</span><span class="djcbv-signature">{{ call.signature }}</span>
+                            <span class="djcbv-method">{{ call.name }}</span><span class="djcbv-signature">{{ call.signature }}</span>
                           </a>
                         {% else %}
-                        <span class="djcbv-method">{{ call.method }}</span><span class="djcbv-signature">{{ call.signature }}</span>
+                        <span class="djcbv-method">{{ call.name }}</span><span class="djcbv-signature">{{ call.signature }}</span>
                         {% endif %}
                         </li>
                       {% endfor %}
                       </ul>
 
                     {% else %}
-
-                      <!-- <code>{{ val.super_calls.0 }}</code>     -->
                       {% if val.super_calls.0.ccbv_link %}
                         <a href="{{ val.super_calls.0.ccbv_link }}" target="_blank">
-                          <span class="djcbv-method">{{ val.super_calls.0.method }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                          <span class="djcbv-method">{{ val.super_calls.0.name }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
                         </a>
                       {% else %}
-                        <span class="djcbv-method">{{ val.super_calls.0.method }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                        <span class="djcbv-method">{{ val.super_calls.0.name }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
                       {% endif %}
                     {% endif %}
 
                   {% endif %}
-                  <!-- <details class="djcbv-show-arguments djcbv-hidden">
-                    <summary>toggle args</summary>
-                    <code>{{ val.arguments }}</code>
-                  </details> -->
                 </td>
 
                 <td class="djcbv-show-arguments" data-cbv-col="file-path">
-                  <p>
-                    {{ val.path }}
-                  </p>
+                  <code>{{ val.path }}</code>
                 </td>
 
               </tr>
@@ -199,6 +165,21 @@
       
       {% if mro %}
         <h4>Ancestors (MRO)</h4>
+        <!-- <ol start="0">
+          {% for cls_dict in mro %}
+              {% if cls_dict.ccbv_link %}
+                <li>
+                  <a href="{{ cls_dict.ccbv_link }}" target="_blank">
+                    <span class="djcbv-method">{{ cls_dict.name }}</span>   
+                  </a>
+                </li>
+              {% else %}
+                <li>
+                  <span class="djcbv-method">{{ cls_dict.name }}</span>
+                </li>
+              {% endif %}
+          {% endfor %}
+        </ol> -->
         <table>
           <thead>
             <tr>
@@ -216,9 +197,9 @@
                       <a href="{{ cls_dict.ccbv_link }}" target="_blank">
                         <span class="djcbv-method">{{ cls_dict.name }}</span>   
                       </a>
-                    {% else %}
+                  {% else %}
                       <span class="djcbv-method">{{ cls_dict.name }}</span>
-                    {% endif %}
+                  {% endif %}
                 </td>
               </tr>
             {% endfor %}
@@ -387,6 +368,7 @@
     /* font-size: 12px; */
     font-size: 14px;
     white-space: nowrap;
+    border: 1px solid #fff;
   }
 
   #djCbv .djcbv-panel-content tbody > tr:nth-child(odd) {
@@ -585,7 +567,7 @@
     // main func to add logs to page!
 
     console.dir(logObj);
-    let tabIndex = logObj.tab_index;
+    let tabIndex = logObj.indent;
     let logName = logObj.name;
     let padding = logObj.padding;
 
@@ -607,7 +589,7 @@
     header.textContent = `${logObj.name}${logObj.signature}`
     result.innerHTML = '<b>result</b>&nbsp';
     result.classList.add('hidden'); // hide results now
-    resultCode.textContent = logObj.ret_value
+    resultCode.textContent = logObj.return_value
     result.appendChild(resultCode);
     logDiv.insertAdjacentElement('afterbegin', header);
     logDiv.insertAdjacentElement('beforeend', result);

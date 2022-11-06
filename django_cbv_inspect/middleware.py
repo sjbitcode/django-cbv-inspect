@@ -3,7 +3,8 @@ import re
 
 from django.urls import resolve
 
-from django_cbv_inspect.mixins import DjCBVInspectMixin, get_ccbv_link
+from django_cbv_inspect.mixins import DjCBVInspectMixin
+from django_cbv_inspect import utils, views
 
 
 logger = logging.getLogger(__name__)
@@ -14,38 +15,7 @@ class InspectorToolbar:
         self.request = request
         self.init_logs()
 
-    def get_view_base_classes(self, view_func):
-        if hasattr(view_func, 'view_class'):
-            base_classes = []
-            view_cls_bases = list(view_func.view_class.__bases__)
-
-            if DjCBVInspectMixin in view_cls_bases:
-                view_cls_bases.remove(DjCBVInspectMixin)
-
-            for cls in view_cls_bases:
-                cls_info = {
-                    'ccbv_link': get_ccbv_link(cls),
-                    'name': f"{cls.__module__}.{cls.__name__}"
-                }
-                base_classes.append(cls_info)
-
-            return base_classes
-
-    def get_mro(self, view_func):
-        if hasattr(view_func, 'view_class'):
-            mro = []
-
-            for cls in view_func.view_class.__mro__:
-                if cls is not DjCBVInspectMixin:
-                    cls_info = {
-                        'ccbv_link': get_ccbv_link(cls),
-                        'name': f"{cls.__module__}.{cls.__name__}"
-                    }
-                    mro.append(cls_info)
-
-            return mro
-
-    def init_logs(self):
+    def init_logs(self) -> None:
         match = resolve(self.request.path)
 
         self.request._djcbv_inspect_metadata = {
@@ -56,13 +26,11 @@ class InspectorToolbar:
             "url_name": match.view_name,
             "args": match.args,
             "kwargs": match.kwargs,
-            "base_classes": self.get_view_base_classes(match.func),
-            "mro": self.get_mro(match.func),
+            "base_classes": utils.collect_parent_classes(match.func, '__bases__'),
+            "mro": utils.collect_parent_classes(match.func, '__mro__'),
         }
 
-    def get_content(self):
-        from django_cbv_inspect import views
-
+    def get_content(self) -> None:
         return views.render_djcbv_panel(self.request)
 
 
