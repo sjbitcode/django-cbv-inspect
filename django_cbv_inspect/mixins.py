@@ -20,14 +20,14 @@ class FunctionLog:
     is_parent: bool = False
     parent_list: List[str] = field(default_factory=list)
 
-    return_value: Any = None
     name: str = None
     args: Tuple[str] = field(default_factory=tuple)
     kwargs: Dict[str, str] = field(default_factory=dict)
+    return_value: Any = None
     signature: str = None
-    ccbv_link: str = None
     path: str = None
     super_calls: List[str] = field(default_factory=list)
+    ccbv_link: str = None
 
     @property
     def parents(self):
@@ -109,14 +109,14 @@ class DjCBVInspectMixin:
 
                 res = attr(*args, **kwargs)
 
-                f.return_value = utils.serialize_params(res)
                 f.name = attr.__qualname__
                 f.args = utils.serialize_params(args)
                 f.kwargs = utils.serialize_params(kwargs)
-                f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
-                f.ccbv_link = utils.get_ccbv_link(attr)
+                f.return_value = utils.serialize_params(res)
+                f.signature = inspect.formatargspec(*inspect.getfullargspec(attr))  # includes 'self' argument
                 f.path = utils.get_path(attr)
                 f.super_calls = utils.get_super_calls(self.__class__, attr)
+                f.ccbv_link = utils.get_ccbv_link(attr)
 
                 self.indent -= 1
                 print(
