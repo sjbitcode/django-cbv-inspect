@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import functools
 import inspect
 import logging
 from pprint import pformat
@@ -38,6 +39,10 @@ def collect_parent_classes(view_func, cls_attr):
                 )
 
         return classes
+
+
+get_bases = functools.partial(collect_parent_classes, cls_attr='__bases__')
+get_mro = functools.partial(collect_parent_classes, cls_attr='__mro__')
 
 
 def get_ccbv_link(attr: Callable) -> Optional[str]:

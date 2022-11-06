@@ -26,8 +26,8 @@ class InspectorToolbar:
             "url_name": match.view_name,
             "args": match.args,
             "kwargs": match.kwargs,
-            "base_classes": utils.collect_parent_classes(match.func, '__bases__'),
-            "mro": utils.collect_parent_classes(match.func, '__mro__'),
+            "base_classes": utils.get_bases(match.func),
+            "mro": utils.get_mro(match.func),
         }
 
     def get_content(self) -> None:
