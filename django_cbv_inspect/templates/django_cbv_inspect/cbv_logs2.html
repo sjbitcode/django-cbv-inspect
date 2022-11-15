@@ -1,6 +1,6 @@
 <div id="djCbv">
 
-  <!-- cbv logs handle -->
+  <!-- djCbv handle -->
   <div id="djCbvHandle">
     <div id="djCbvShowPanelButton">
       <span id="djCbvShowPanelButtonD">D</span>
@@ -9,18 +9,17 @@
     </div>
   </div>
 
-  <!-- cbv logs panel -->
+  <!-- djCbv panel -->
   <div class="djcbv-panel djcbv-hidden">
 
-    <!-- panel title -->
+    <!-- djCbv panel title -->
     <div class="djcbv-panel-title">
       <h1>CBV inspect for <code>{{ method }} {{ path }}</code></h1>
       <button id="djCbvExitPanel" class="cbvLogsButton">x</button>
     </div>
 
-    <!-- panel content -->
+    <!-- djCbv panel content -->
     <div class="djcbv-panel-content">
-      <!-- <br> -->
       <h4>View information</h4>
       <table>
         <thead>
@@ -61,7 +60,6 @@
         </tbody>
       </table>
 
-      <!-- <br> -->
       {% if logs %}
         <h4>CBV method call chain</h4>
         <table>
@@ -154,7 +152,6 @@
                 <td class="djcbv-show-arguments" data-cbv-col="file-path">
                   <code>{{ val.path }}</code>
                 </td>
-
               </tr>
             {% endfor %}
           </tbody>
@@ -165,21 +162,6 @@
       
       {% if mro %}
         <h4>Ancestors (MRO)</h4>
-        <!-- <ol start="0">
-          {% for cls_dict in mro %}
-              {% if cls_dict.ccbv_link %}
-                <li>
-                  <a href="{{ cls_dict.ccbv_link }}" target="_blank">
-                    <span class="djcbv-method">{{ cls_dict.name }}</span>   
-                  </a>
-                </li>
-              {% else %}
-                <li>
-                  <span class="djcbv-method">{{ cls_dict.name }}</span>
-                </li>
-              {% endif %}
-          {% endfor %}
-        </ol> -->
         <table>
           <thead>
             <tr>
@@ -214,57 +196,38 @@
 </div>
 
 <style>
-  .hidden, .djcbv-hidden {
+  #djCbv .djcbv-hidden {
     display: none !important;
   }
 
-  .djcbv-vis-hidden {
-    visibility: hidden !important;
-  }
-
-  .result {
-    display: inline-block;
-  }
-
-  #djCbv {
-    /* margin: 0;
+  #djCbv, #djCbv a, #djCbv ul, #djCbv li {
+    margin: 0;
     padding: 0;
-    min-width: 0;
-    width: auto;
-    border: 0;
-    outline: 0;
-    font-size: 12px;
-    line-height: 1.5em;
-    color: #000;
-    vertical-align: baseline;
-    background-color: transparent;
-    text-align: left;
-    text-shadow: none;
-    white-space: normal;
-    transition: none; */
+    line-height: 1.5;
+    color: #4a4a4a;
+    font-size: 14px;
+    font-weight: 400;
     font-family: sans-serif;
-    /* text-decoration: none !important; */
+    text-decoration: none;
+    list-style: none;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  #djCbv a {
+    color: #485fc7;
+    cursor: pointer;
   }
 
   #djCbv h4 {
     font-size: 20px;
     font-weight: bold;
-    /* margin-top: 0.8em; */
-    margin-top: 30px;
-    /* color: #475569; */
+    margin: 30px 0 0 0;
     color: #334155;
   }
 
-  #djCbv ul {
-    list-style: none;
-  }
-
-  #djCbv li {
-    padding: 0;
-    margin: 0;
-  }
-
-  #djCbvHandle {
+  #djCbv #djCbvHandle {
     position: fixed;
     transform: rotate(-90deg);
     transform-origin: right bottom;
@@ -276,14 +239,14 @@
     border-bottom: 0;
   }
 
-  #djCbvShowPanelButton:hover {
+  #djCbv #djCbvShowPanelButton:hover {
     background-color: #111;
     border-color: #38bdf8;
     opacity: 1;
     cursor: pointer;
   }
 
-  #djCbvShowPanelButton {
+  #djCbv #djCbvShowPanelButton {
     padding: 0 5px;
     border: 5px solid #7dd3fc;
     border-bottom-width: 0;
@@ -296,32 +259,26 @@
     align-items: baseline;
   }
   
-  #djCbvShowPanelButtonD {
+  #djCbv #djCbvShowPanelButtonD, #djCbv #djCbvShowPanelButtonJ {
     color: #7dd3fc;
   }
 
-  #djCbvShowPanelButtonJ {
-    color: #7dd3fc;
+  #djCbv #djCbvShowPanelButtonJ {
     font-size: 16px;
   }
 
-  .djcbv-panel {
+  #djCbv .djcbv-panel {
     position: fixed;
-    padding: 0;
-    margin: 0;
     top: 0;
     left: 0;
-    /* background-color: #eee; */
-    /* background-color: #f4fbff; */
     background-color: #fff;
-    /* background-color: #eff6ff; */
     z-index: 1000000000;
     width: 100%;
     height: 100%;
     overflow: auto;
   }
 
-  .djcbv-panel-content {
+  #djCbv .djcbv-panel-content {
     position: absolute;
     top: 50px;
     right: 0;
@@ -330,20 +287,12 @@
     height: auto;
     padding: 5px 20px 0 20px;
     overflow-y: auto;
-
-    font-size: 14px;
     line-height: 1.5em;
-    color: #000;
     vertical-align: baseline;
-    font-family: sans-serif;
+    margin-bottom: 30px;
   }
 
   #djCbv .djcbv-panel-content table {
-    /* border: 1px solid #ccc; */
-    /* border: 1px solid #ffe2c4; */
-    /* border: 1px solid #bae6fd; */
-    /* border: 1px solid #e2e8f0; */
-    /* border: 1px solid #cbd5e1; */
     border: 2px solid #e2e8f0;
     border-collapse: collapse;
     width: 100%;
@@ -353,26 +302,20 @@
     overflow: auto;
   }
 
-  #djCbv .djcbv-panel-content thead th {
+  #djCbv .djcbv-panel-content thead th, #djCbv .djcbv-panel-content tbody td {
     padding: 4px 6px 4px 3px;
-    text-align: left;
+  }
+
+  #djCbv .djcbv-panel-content thead th {
     font-weight: bold;
-    font-size: 14px;
-    white-space: nowrap;
     color: #334155;
   }
 
   #djCbv .djcbv-panel-content tbody td {
-    padding: 4px 6px 4px 3px;
-    text-align: left;
-    /* font-size: 12px; */
-    font-size: 14px;
-    white-space: nowrap;
     border: 1px solid #fff;
   }
 
   #djCbv .djcbv-panel-content tbody > tr:nth-child(odd) {
-    /* background-color: #f5f5f5; */
     background-color: #f1f5f9;
   }
 
@@ -387,22 +330,14 @@
     line-height: 1;
   }
 
-  #djCbv .djcbv-method {
-    font-weight: 400;
-  }
-
   #djCbv .djcbv-signature {
     color: #545454;
     font-weight: 300;
     font-family: Consolas,"courier new";
-    /* font-family: Consolas, Monaco, "Bitstream Vera Sans Mono", "Lucida Console", monospace; */
-    /* font-size: 13px; */
   }
 
-  #panelTitle, .djcbv-panel-title {
+  #djCbv .djcbv-panel-title {
     position: absolute;
-    /* background-color: #ffc; */
-    /* background-color: #7dd3fc; */
     background-color: #0ea5e9;
     color: #666;
     padding-left: 20px;
@@ -415,20 +350,38 @@
     justify-content: space-between;
   }
 
-  #panelTitle h1, .djcbv-panel-title h1 {
-    font-size: 24px;
-    /* color: black; */
-    color: white;
+  #djCbv code {
+    color: #db2777 !important;
   }
 
-  #panelTitle h1, .djcbv-panel-title h1 code {
+  #djCbv .djcbv-panel-title code {
+    padding: .25em .5em .25em;
+  }
+
+  #djCbv table code {
+    display: block;
+    font-family: Consolas, Monaco, "Bitstream Vera Sans Mono", "Lucida Console", monospace;
+    font-size: 12px;
+    white-space: pre;
+    overflow: auto;
+    background-color: inherit;
+  }
+
+  #djCbv .djcbv-panel-title h1 {
+    font-size: 24px;
+    color: white;
+    font-weight: normal;
+  }
+
+  #djCbv .djcbv-panel-title h1 code {
     background-color: white;
     color: #8e8e8e;
     font-weight: bold;
     border-radius: 3px;
+    font-size: 21px;
   }
 
-  #djCbvExitPanel {
+  #djCbv #djCbvExitPanel {
     margin: 0 20px;
     border: 6px solid #ddd;
     border-radius: 50%;
@@ -443,35 +396,11 @@
     width: 16px;
   }
 
-  #djCbvExitPanel:hover {
-    /* background: #f14668; */
+  #djCbv #djCbvExitPanel:hover {
     background: #ff9ed9;
   }
 
-  #djCbv .djcbv-show-arguments code, #djCbv .djcbv-show-result code, #djCbv table code {
-  /* #djCbv table > code { */
-    display: block;
-    font-family: Consolas, Monaco, "Bitstream Vera Sans Mono", "Lucida Console", monospace;
-    font-size: 12px;
-    white-space: pre;
-    /* white-space: normal; */
-    overflow: auto;
-    /* background-color: #fff; */
-    background-color: inherit;
-    /* width: 30%; */
-    /* color: #e1a052; */
-    color: #db2777;
-  }
-
-  code {
-    color: #db2777 !important;
-  }
-
-  #djCbv summary {
-    color: #55a0c4;
-  }
-
-  .cbvLogsButton {
+  #djCbv .cbvLogsButton {
     cursor: pointer;
   }
 </style>
