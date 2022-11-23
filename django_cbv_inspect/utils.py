@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 import functools
 import inspect
 import logging
 from pprint import pformat
 import re
-from typing import Any, Callable, Dict, List, Type, Union, Optional
+from typing import Any, Callable, Dict, List, Literal, Type, Union, Optional
 
 from django import get_version
 from django.http import HttpRequest
@@ -22,54 +24,57 @@ class DjCBVClassOrMethodInfo:
     signature: str = None
 
 
-def collect_parent_classes(view_func, cls_attr):
-    """
-    Iterate over view.func.cls_attr and return all classes except DjCBVInspectMixin
-    """
-    if hasattr(view_func, 'view_class'):
-        classes = []
+def is_view_cbv(func: Callable) -> bool:
+    return hasattr(func, "view_class")
 
-        for cls in getattr(view_func.view_class, cls_attr, []):
-            if cls is not mixins.DjCBVInspectMixin:
-                classes.append(
-                    DjCBVClassOrMethodInfo(
-                        ccbv_link=get_ccbv_link(cls),
-                        name=f"{cls.__module__}.{cls.__name__}"
-                    )
+
+def collect_parent_classes(cls: Type, attr: Literal["__mro__", "__bases__"]):
+    """
+    Iterate over cls.attr and return all classes except DjCBVInspectMixin
+    """
+    classes = []
+
+    for cls in getattr(cls, attr, []):
+        if cls is not mixins.DjCBVInspectMixin:
+            classes.append(
+                DjCBVClassOrMethodInfo(
+                    ccbv_link=get_ccbv_link(cls),
+                    name=f"{cls.__module__}.{cls.__name__}"
                 )
+            )
 
-        return classes
-
-
-get_bases = functools.partial(collect_parent_classes, cls_attr='__bases__')
-get_mro = functools.partial(collect_parent_classes, cls_attr='__mro__')
+    return classes
 
 
-def get_ccbv_link(attr: Callable) -> Optional[str]:
+get_bases = functools.partial(collect_parent_classes, attr='__bases__')
+get_mro = functools.partial(collect_parent_classes, attr='__mro__')
+
+
+def get_ccbv_link(obj: Union[Callable, Type]) -> Optional[str]:
     """
-    note: older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard, but we're skipping those.
-    example: https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
-    """
+    Note: older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard, but we're skipping those.
 
-    module = attr.__module__
+    example ccbv link: https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
+    """
+    module = obj.__module__
     from_generic = module.startswith("django.views.generic")
     from_auth = module.startswith("django.contrib.auth.views")
 
     if from_generic or from_auth:
         version = get_version().rsplit(".", 1)[0]
 
-        if inspect.isroutine(attr):  # function or bound method?
-            class_name, method_name = attr.__qualname__.split(".", 1)
+        if inspect.isroutine(obj):  # function or bound method?
+            class_name, method_name = obj.__qualname__.split(".", 1)
             return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
-        elif inspect.isclass(attr):
-            return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{attr.__name__}"
+        elif inspect.isclass(obj):
+            return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{obj.__name__}"
 
 
-def get_path(attr: Callable) -> str:
+def get_path(obj: Callable) -> str:
     """
     Returns file path of a module.
     """
-    path = inspect.getfile(attr)
+    path = inspect.getfile(obj)
     sp_str = "/site-packages/"
     index = path.find(sp_str)
 
@@ -80,40 +85,40 @@ def get_path(attr: Callable) -> str:
     return path
 
 
-def serialize_params(object: Union[tuple, Dict, List, Any]) -> str:
-    formatted = pformat(object)
+def serialize_params(obj: Any) -> str:
+    formatted = pformat(obj)
 
-    clean_funcs = [coalesce_request, coalesce_queryset]
+    clean_funcs = [mask_request, mask_queryset]
 
-    for func in clean_funcs:
-        formatted = func(formatted)
+    for clean_func in clean_funcs:
+        formatted = clean_func(formatted)
 
     return formatted
 
 
-def coalesce_request(s: str) -> str:
+def mask_request(s: str) -> str:
     pattern = re.compile("<WSGIRequest: .*?>")
     coalesce_str = "<<request>>"
     return re.sub(pattern, coalesce_str, s)
 
 
-def coalesce_queryset(s: str) -> str:
+def mask_queryset(s: str) -> str:
     pattern = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
     coalesce_str = "<<queryset of \g<modelName>>>"
     return re.sub(pattern, coalesce_str, s)
 
 
-def get_cls_from_attr(attr: Callable) -> Type:
+def get_cls_from_method(obj: Callable) -> Type:
     # reference https://stackoverflow.com/a/55767059
-    return vars(inspect.getmodule(attr))[attr.__qualname__.rsplit('.', 1)[0]]
+    return vars(inspect.getmodule(obj))[obj.__qualname__.rsplit('.', 1)[0]]
 
 
-def get_sourcecode(attr: Callable) -> str:
-    source = inspect.getsource(attr)
+def get_sourcecode(obj: Callable) -> str:
+    source = inspect.getsource(obj)
 
     # remove docstring if it exists
-    if attr.__doc__:
-        source = source.replace(attr.__doc__, '', 1)
+    if obj.__doc__:
+        source = source.replace(obj.__doc__, '', 1)
 
     return re.sub(re.compile(r'#.*?\n'), '', source)
 
@@ -127,7 +132,7 @@ def get_super_calls(cls: Type, attr: Callable) -> List:
 
     for match in matches:  # for each super call
         _, method_name = match
-        attr_cls = get_cls_from_attr(attr)
+        attr_cls = get_cls_from_method(attr)
         method_info = {}
 
         for bc in base_classes[base_classes.index(attr_cls)+1:]:  # remaining classes
@@ -140,7 +145,7 @@ def get_super_calls(cls: Type, attr: Callable) -> List:
                 # But we don't need to iterate until we get to attr2's real parent class,
                 # we can capture the info here and break
                 # ex. ListView hasattr get_context_data is true, but the method is defined on MultipleObjectMixin
-                # if bc is get_cls_from_attr(attr2):
+                # if bc is get_cls_from_method(attr2):
                 method_info = DjCBVClassOrMethodInfo(
                     ccbv_link=get_ccbv_link(attr2),
                     name=attr2.__qualname__,

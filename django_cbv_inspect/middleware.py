@@ -26,9 +26,13 @@ class InspectorToolbar:
             "url_name": match.view_name,
             "args": match.args,
             "kwargs": match.kwargs,
-            "base_classes": utils.get_bases(match.func),
-            "mro": utils.get_mro(match.func),
         }
+
+        if utils.is_view_cbv(match.func):
+            self.request._djcbv_inspect_metadata.update({
+                "base_classes": utils.get_bases(match.func.view_class),
+                "mro": utils.get_mro(match.func.view_class)
+            })
 
     def get_content(self) -> None:
         return views.render_djcbv_panel(self.request)
@@ -80,8 +84,7 @@ class DjCBVInspectMiddleware:
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        # insert djcbv mixin if class-based view
-        if hasattr(view_func, "view_class"):
+        if utils.is_view_cbv(view_func):
             if DjCBVInspectMixin not in view_func.view_class.__bases__:
                 view_func.view_class.__bases__ = (
                     DjCBVInspectMixin,
