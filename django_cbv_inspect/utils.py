@@ -25,6 +25,9 @@ class DjCBVClassOrMethodInfo:
 
 
 def is_view_cbv(func: Callable) -> bool:
+    """
+    Determine if a function is a result of a CBV as_view() call.
+    """
     return hasattr(func, "view_class")
 
 
@@ -52,19 +55,20 @@ get_mro = functools.partial(collect_parent_classes, attr='__mro__')
 
 def get_ccbv_link(obj: Union[Callable, Type]) -> Optional[str]:
     """
-    Note: older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard, but we're skipping those.
+    Construct the ccbv.co.uk link for a class or method.
+    ex: https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
 
-    example ccbv link: https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
+    Note: older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard, but we're skipping those.
     """
-    module = obj.__module__
-    from_generic = module.startswith("django.views.generic")
-    from_auth = module.startswith("django.contrib.auth.views")
+    module: str = obj.__module__
+    from_generic: bool = module.startswith("django.views.generic")
+    from_auth: bool = module.startswith("django.contrib.auth.views")
 
     if from_generic or from_auth:
         version = get_version().rsplit(".", 1)[0]
 
         if inspect.isroutine(obj):  # function or bound method?
-            class_name, method_name = obj.__qualname__.split(".", 1)
+            class_name, method_name = obj.__qualname__.rsplit(".", 1)
             return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
         elif inspect.isclass(obj):
             return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{obj.__name__}"
@@ -74,19 +78,24 @@ def get_path(obj: Callable) -> str:
     """
     Returns file path of a module.
     """
-    path = inspect.getfile(obj)
-    sp_str = "/site-packages/"
-    index = path.find(sp_str)
+    path: str = inspect.getfile(obj)
+    site_pkg_dir = "/site-packages/"
+    index: int = path.find(site_pkg_dir)
 
     # For site-packages paths, display path starting from /<package-name>/
     if index > -1:
-        path = path[index + len(sp_str) - 1:]
+        path = path[index + len(site_pkg_dir) - 1:]
 
     return path
 
 
 def serialize_params(obj: Any) -> str:
-    formatted = pformat(obj)
+    """
+    Return a stringified and masked representation of an object.
+
+    This is used on arguments, keyword arguments, and return values.
+    """
+    formatted: str = pformat(obj)
 
     clean_funcs = [mask_request, mask_queryset]
 
@@ -97,24 +106,48 @@ def serialize_params(obj: Any) -> str:
 
 
 def mask_request(s: str) -> str:
+    """
+    Subsitute an HttpRequests's string representation with a masked value.
+    """
     pattern = re.compile("<WSGIRequest: .*?>")
-    coalesce_str = "<<request>>"
-    return re.sub(pattern, coalesce_str, s)
+    mask = "<<request>>"
+    return re.sub(pattern, mask, s)
 
 
 def mask_queryset(s: str) -> str:
+    """
+    Substitute a QuerySet's string representation with a masked value.
+    """
     pattern = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
-    coalesce_str = "<<queryset of \g<modelName>>>"
-    return re.sub(pattern, coalesce_str, s)
+    mask = "<<queryset of \g<modelName>>>"
+    return re.sub(pattern, mask, s)
 
 
 def get_cls_from_method(obj: Callable) -> Type:
+    """
+    Return class from module object.
+    """
     # reference https://stackoverflow.com/a/55767059
     return vars(inspect.getmodule(obj))[obj.__qualname__.rsplit('.', 1)[0]]
 
 
+def cls_has_method(cls: Type, method: str) -> bool:
+    """
+    Check if a class defines a method.
+    """
+    attr = getattr(cls, method, None)
+
+    if attr:
+        return callable(attr)
+
+    return False
+
+
 def get_sourcecode(obj: Callable) -> str:
-    source = inspect.getsource(obj)
+    """
+    Return an object's sourcecode without docstring and comments.
+    """
+    source: str = inspect.getsource(obj)
 
     # remove docstring if it exists
     if obj.__doc__:
@@ -123,41 +156,59 @@ def get_sourcecode(obj: Callable) -> str:
     return re.sub(re.compile(r'#.*?\n'), '', source)
 
 
-def get_super_calls(cls: Type, attr: Callable) -> List:
-    source = get_sourcecode(attr)
-    SUPER_PATTERN = re.compile(r"(super\(.*\)\.(?P<methodName>\w+)\(.*\))")  # this matches all including commented!!
-    matches = re.findall(SUPER_PATTERN, source)
-    base_classes = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", cls.__mro__))
-    super_calls = []
+def get_super_calls(cls: Type, method: Callable) -> List:
+    """
+    Extract super calls from a method and for each,
+    return metadata about class that the super builtin resolves and calls.
+    """
+    source: str = get_sourcecode(method)
+    # this regex pattern includes comments, so we exclude comments above
+    SUPER_PATTERN = re.compile(r"(super\(.*\)\.(?P<methodName>\w+)\(.*\))")
+    matches: List = re.findall(SUPER_PATTERN, source)
 
-    for match in matches:  # for each super call
+    if not matches:
+        return
+
+    super_metadata: List[DjCBVClassOrMethodInfo] = []
+    mro_classes: List = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", cls.__mro__))
+    method_cls: Type = get_cls_from_method(method)  # the class that defines this method containing super calls
+
+    for match in matches:  # for each super call in method
         _, method_name = match
-        attr_cls = get_cls_from_method(attr)
         method_info = {}
 
-        for bc in base_classes[base_classes.index(attr_cls)+1:]:  # remaining classes
+        # search remaining mro classes, after method_cls
+        for mro_cls in mro_classes[mro_classes.index(method_cls)+1:]:
+            if cls_has_method(mro_cls, method_name):
+                attr: Callable = getattr(mro_cls, method_name)
 
-            # check if base class has method
-            if hasattr(bc, method_name):
-                attr2 = getattr(bc, method_name)
-
-                # At this point, attr2's real class can be bc or not.
-                # But we don't need to iterate until we get to attr2's real parent class,
-                # we can capture the info here and break
-                # ex. ListView hasattr get_context_data is true, but the method is defined on MultipleObjectMixin
-                # if bc is get_cls_from_method(attr2):
+                # At this point, attr's parent class can be mro_cls or not.
+                # ex:
+                #   mro_cls = ListView, method_name = "get_context_data"
+                #   hasattr(ListView, "get_context_data") is True, but
+                #   getattr(ListView, "get_context_data") is <function MultipleObjectMixin.get_context_data ...>
+                #   because the method is defined or overriden on MultipleObjectMixin.
+                # We can collect this metadata without iterating further through MRO classes
                 method_info = DjCBVClassOrMethodInfo(
-                    ccbv_link=get_ccbv_link(attr2),
-                    name=attr2.__qualname__,
-                    signature=str(inspect.signature(attr2))
+                    ccbv_link=get_ccbv_link(attr),
+                    name=attr.__qualname__,
+                    signature=str(inspect.signature(attr))
                 )
                 break
-        super_calls.append(method_info)
+        super_metadata.append(method_info)
 
-    return super_calls
+    return super_metadata
 
 
 def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRequest]:
+    """
+    Attempt to return an HttpRequest object from an attribute or arguments.
+
+    The main reason is because View.setup is the first CBV method that runs
+    and sets the request object on the CBV instance.
+    The DjCBVInspectMixin needs access to the request object before View.setup
+    runs so it attempts to grab it from aruments.
+    """
     if hasattr(instance, 'request'):
         return instance.request
 
