@@ -1,8 +1,10 @@
+from collections import namedtuple
+import inspect
 import unittest
-# from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django import get_version
-from django.http import HttpRequest, HttpResponse
+from django.test import RequestFactory, TestCase
 from django.views.generic import TemplateView
 import requests
 
@@ -23,7 +25,7 @@ from django_cbv_inspect.utils import (
     get_super_calls,
     get_request
 )
-from . import test_helpers, views
+from . import test_helpers, views, models
 
 
 class TestIsViewCbv(unittest.TestCase):
@@ -134,3 +136,97 @@ class TestGetCCBVLink(unittest.TestCase):
     def test_ccbv_link_does_not_return_link_for_non_CBV_method(self):
         # Act/Assert
         self.assertIsNone(get_ccbv_link(views.RenderHtmlView.get_context_data))
+
+
+@patch.object(inspect, "getfile")
+class TestGetPath(unittest.TestCase):
+    def test_get_path_for_dependency_returns_truncated_path(self, mock_getfile):
+        # Arrange
+        mock_getfile.return_value = "some/path/site-packages/cool/cool_class.py"
+        expected_return_path = "/cool/cool_class.py"
+
+        # Act
+        path = get_path(Mock())
+
+        # Assert
+        self.assertEqual(expected_return_path, path)
+
+    def test_get_path_for_internal_dependency_returns_full_path(self, mock_getfile):
+        # Arrange
+        mock_getfile.return_value = "some/path/cool/cool_class.py"
+
+        # Act
+        path = get_path(Mock())
+
+        # Assert
+        self.assertEqual(mock_getfile.return_value, path)
+
+
+class TestSerializeParams(unittest.TestCase):
+    @patch("django_cbv_inspect.utils.mask_request")
+    @patch("django_cbv_inspect.utils.mask_queryset")
+    @patch("django_cbv_inspect.utils.pformat")
+    def test_serialize_params_calls_pformat_and_clean_functions(
+        self, mock_pformat, mock_mask_queryset, mock_mask_req
+    ):
+        # Act
+        serialize_params({"name": "Foo"})
+
+        # Assert
+        mock_pformat.assert_called_once()
+        mock_mask_req.assert_called_once()
+        mock_mask_queryset.assert_called_once()
+
+
+class TestMaskRequest(unittest.TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_mask_request_replaces_string_correctly(self):
+        # Arrange
+        SubTestArgs = namedtuple("SubTestArgs", "passed expected")
+        expected = "<<request>>"
+
+        args = [
+            SubTestArgs(passed=str(self.factory.get("")), expected=expected),
+            SubTestArgs(passed=str(self.factory.get("/foo")), expected=expected),
+            SubTestArgs(passed=str((1, 2)), expected="(1, 2)"),
+            SubTestArgs(passed=" ", expected=" "),
+            SubTestArgs(passed="", expected=""),
+        ]
+
+        # Act/Assert
+        for arg in args:
+            with self.subTest(arg):
+                masked = mask_request(arg.passed)
+                self.assertEqual(arg.expected, masked)
+
+
+class TestMaskQueryset(TestCase):
+    def setUp(self):
+        self.model = models.Book
+        self.model.objects.create(name="The Witches")
+        self.model.objects.create(name="Harry Potter and the Chamber of Apps")
+
+    def test_mask_queryset_replaces_string_correctly(self):
+        # Arrange
+        SubTestArgs = namedtuple("SubTestArgs", "passed expected")
+        expected = "<<queryset>>"
+
+        non_empty_qs = SubTestArgs(passed=str(self.model.objects.all()), expected=expected)
+        self.model.objects.all().delete()
+        empty_qs = SubTestArgs(passed=str(self.model.objects.all()), expected=expected)
+
+        args = [
+            non_empty_qs,
+            empty_qs,
+            SubTestArgs(passed=str((1, 2)), expected="(1, 2)"),
+            SubTestArgs(passed=" ", expected=" "),
+            SubTestArgs(passed="", expected=""),
+        ]
+
+        # Act/Assert
+        for arg in args:
+            with self.subTest(arg):
+                masked = mask_queryset(arg.passed)
+                self.assertEqual(arg.expected, masked)

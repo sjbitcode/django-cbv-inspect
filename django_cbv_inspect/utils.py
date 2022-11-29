@@ -118,8 +118,10 @@ def mask_queryset(s: str) -> str:
     """
     Substitute a QuerySet's string representation with a masked value.
     """
-    pattern = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
-    mask = "<<queryset of \g<modelName>>>"
+    # pattern = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
+    # mask = "<<queryset of \g<modelName>>>"
+    pattern = re.compile("<QuerySet \[.*?\]>")
+    mask = "<<queryset>>"
     return re.sub(pattern, mask, s)
 
 

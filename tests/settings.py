@@ -16,6 +16,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # internal apps
+    "tests.apps.BooksConfig",
+    # external apps
     "django_cbv_inspect",
 ]
 
