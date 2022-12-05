@@ -125,7 +125,7 @@ def mask_queryset(s: str) -> str:
     return re.sub(pattern, mask, s)
 
 
-def get_cls_from_method(obj: Callable) -> Type:
+def get_class_from_method(obj: Callable) -> Type:
     """
     Return class from module object.
     """
@@ -133,7 +133,7 @@ def get_cls_from_method(obj: Callable) -> Type:
     return vars(inspect.getmodule(obj))[obj.__qualname__.rsplit('.', 1)[0]]
 
 
-def cls_has_method(cls: Type, method: str) -> bool:
+def class_has_method(cls: Type, method: str) -> bool:
     """
     Check if a class defines a method.
     """
@@ -173,7 +173,7 @@ def get_super_calls(cls: Type, method: Callable) -> List:
 
     super_metadata: List[DjCBVClassOrMethodInfo] = []
     mro_classes: List = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", cls.__mro__))
-    method_cls: Type = get_cls_from_method(method)  # the class that defines this method containing super calls
+    method_cls: Type = get_class_from_method(method)  # the class that defines this method containing super calls
 
     for match in matches:  # for each super call in method
         _, method_name = match
@@ -181,7 +181,7 @@ def get_super_calls(cls: Type, method: Callable) -> List:
 
         # search remaining mro classes, after method_cls
         for mro_cls in mro_classes[mro_classes.index(method_cls)+1:]:
-            if cls_has_method(mro_cls, method_name):
+            if class_has_method(mro_cls, method_name):
                 attr: Callable = getattr(mro_cls, method_name)
 
                 # At this point, attr's parent class can be mro_cls or not.

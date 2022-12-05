@@ -19,8 +19,8 @@ from django_cbv_inspect.utils import (
     serialize_params,
     mask_request,
     mask_queryset,
-    get_cls_from_method,
-    cls_has_method,
+    get_class_from_method,
+    class_has_method,
     get_sourcecode,
     get_super_calls,
     get_request
@@ -230,3 +230,72 @@ class TestMaskQueryset(TestCase):
             with self.subTest(arg):
                 masked = mask_queryset(arg.passed)
                 self.assertEqual(arg.expected, masked)
+
+
+class TestGetClassFromMethod(unittest.TestCase):
+    def test_get_class_from_method_returns_class_object(self):
+        """
+        This tests a method on a class that is not defined on the parent class.
+        """
+        # Arrange
+        foo_cls = test_helpers.Foo
+
+        # Act
+        cls = get_class_from_method(foo_cls.goodbye)
+
+        # Assert
+        self.assertEqual(cls, foo_cls)
+
+    def test_get_class_from_overriden_method_returns_class_object(self):
+        """
+        This tests a method on a class that is overriden.
+        """
+        # Arrange
+        foo_cls = test_helpers.Foo
+
+        # Act
+        cls = get_class_from_method(foo_cls.greet)  # Foo's superclass also defines greet
+
+        # Assert
+        self.assertEqual(cls, foo_cls)
+
+
+class TestClassHasMethod(unittest.TestCase):
+    def test_class_has_method_returns_true_for_method(self):
+        # Act/Assert
+        self.assertTrue(class_has_method(test_helpers.Foo, "greet"))
+
+    def test_class_has_method_returns_false_for_attribue(self):
+        # Act/Assert
+        self.assertFalse(class_has_method(test_helpers.Foo, "color"))
+
+    def test_class_has_method_returns_true_for_inherited_method(self):
+        # Act/Assert
+        self.assertTrue(class_has_method(test_helpers.FuturisticFoo, "greet"))
+
+    def test_class_has_method_returns_true_for_classmethod(self):
+        # Act/Assert
+        self.assertTrue(class_has_method(test_helpers.FuturisticFoo, "get_cls_color"))
+
+    def test_class_has_method_returns_true_for_staticmethod(self):
+        # Act/Assert
+        self.assertTrue(class_has_method(test_helpers.FuturisticFoo, "get_number"))
+
+
+class TestGetSourcecode(unittest.TestCase):
+    def test_get_sourcecode_strips_docstring(self):
+        # Act
+        sourcecode = get_sourcecode(test_helpers.sample_func)
+
+        # Assert
+        self.assertFalse("Sample docstring" in sourcecode)
+        self.assertFalse("comment" in sourcecode)
+        self.assertFalse("#" in sourcecode)
+
+    def test_get_sourcecode_for_func_witout_docstring_or_comments(self):
+        # Act
+        sourcecode = get_sourcecode(test_helpers.sample_func2)
+
+        # Assert
+        self.assertFalse("#" in sourcecode)
+        self.assertEqual(sourcecode, inspect.getsource(test_helpers.sample_func2))
