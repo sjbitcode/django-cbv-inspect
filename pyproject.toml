@@ -1,3 +1,18 @@
+[tool.coverage.run]
+branch = true
+source = ["django_cbv_inspect"]
+omit = [
+    "*/__init__.py",
+    "*/apps.py",
+    "*/settings.py"
+]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 50
+
+
 [build-system]
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"

@@ -1,5 +1,7 @@
+from django.http import HttpResponse
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.template import loader
+from django.views.generic import TemplateView, View
 
 
 class RenderHtmlView(TemplateView):
@@ -13,8 +15,18 @@ class RenderHtmlView(TemplateView):
 
 
 def fbv_render(request):
-    return render(
-        request,
-        "base.html",
-        {"title": "FBV Render", "content": "Hello FBV!"}
-    )
+    template_name = "base.html"
+    template = loader.get_template(template_name)
+    context = {"title": "FBV Render", "content": "Hello FBV!"}
+
+    return HttpResponse(template.render(context, request))
+    # return render(
+    #     request,
+    #     template_name,
+    #     context
+    # )
+
+
+class HelloTest(View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse("hello from a CBV View!")

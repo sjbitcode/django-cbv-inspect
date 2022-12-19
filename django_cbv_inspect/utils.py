@@ -70,7 +70,8 @@ def get_ccbv_link(obj: Union[Callable, Type]) -> Optional[str]:
         if inspect.isroutine(obj):  # function or bound method?
             class_name, method_name = obj.__qualname__.rsplit(".", 1)
             return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
-        elif inspect.isclass(obj):
+
+        if inspect.isclass(obj):
             return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{obj.__name__}"
 
 
@@ -207,7 +208,8 @@ def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRe
     Attempt to return an HttpRequest object from an attribute or arguments.
 
     The main reason is because View.setup is the first CBV method that runs
-    and sets the request object on the CBV instance.
+    and sets the request object on the CBV instance, so we can't do "self.request"
+    during the setup method!
     The DjCBVInspectMixin needs access to the request object before View.setup
     runs so it attempts to grab it from aruments.
     """
@@ -218,6 +220,4 @@ def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRe
         if isinstance(args[0], HttpRequest):
             return args[0]
 
-    for arg in args:
-        if isinstance(arg, HttpRequest):
-            return arg
+    raise Exception("Request object could not be found!")

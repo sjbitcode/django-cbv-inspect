@@ -49,7 +49,6 @@ class DjCBVInspectMiddleware:
         """
         content_type = response.get("Content-Type", "").split(";")[0]
         content_encoding = response.get("Content-Encoding", "")
-
         has_content = hasattr(response, "content")
         is_html_content_type = content_type == "text/html"
         gzipped_encoded = "gzip" in content_encoding
@@ -62,10 +61,23 @@ class DjCBVInspectMiddleware:
             and not streaming_response
         )
 
+    def _remove_djcbv_mixin(self, request):
+        """
+        Remove mixin if its present in cbv view function.
+        """
+        view_func = resolve(request.path).func
+
+        if utils.is_view_cbv(view_func):
+            view_func.view_class.__bases__ = tuple(
+                x for x in view_func.view_class.__bases__ if x is not DjCBVInspectMixin
+            )
+
     def __call__(self, request):
         i = InspectorToolbar(request)
 
         response = self.get_response(request)
+
+        self._remove_djcbv_mixin(request)
 
         if self._is_response_insertable(response):
             content = response.content.decode(response.charset)
@@ -85,9 +97,8 @@ class DjCBVInspectMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if utils.is_view_cbv(view_func):
-            if DjCBVInspectMixin not in view_func.view_class.__bases__:
-                view_func.view_class.__bases__ = (
-                    DjCBVInspectMixin,
-                    *view_func.view_class.__bases__
-                )
+            view_func.view_class.__bases__ = (
+                DjCBVInspectMixin,
+                *view_func.view_class.__bases__
+            )
         return

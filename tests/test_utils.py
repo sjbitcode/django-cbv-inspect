@@ -1,7 +1,7 @@
 from collections import namedtuple
 import inspect
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock, create_autospec
 
 from django import get_version
 from django.test import RequestFactory, TestCase
@@ -25,6 +25,7 @@ from django_cbv_inspect.utils import (
     get_super_calls,
     get_request
 )
+from django_cbv_inspect.mixins import DjCBVInspectMixin
 from . import test_helpers, views, models
 
 
@@ -93,6 +94,27 @@ class TestCollectParentClasses(unittest.TestCase):
         self.assertEqual(base_cls_metadata, cls_metadata)
         self.assertEqual(base_cls_metadata, cls_metadata_from_get_bases)
 
+    def test_collect_parent_classes_skips_djcbvinspectmixin(self):
+        # Arrange
+        bases = test_helpers.DjFoo.__bases__
+        base_cls_metadata = []
+
+        for base_cls in bases:
+            if base_cls is not DjCBVInspectMixin:
+                base_cls_metadata.append(DjCBVClassOrMethodInfo(
+                    ccbv_link=None,
+                    name=f"{base_cls.__module__}.{base_cls.__name__}",
+                    signature=None
+                ))
+
+        # Act
+        cls_metadata = collect_parent_classes(test_helpers.DjFoo, "__bases__")
+        cls_metadata_from_get_bases = get_bases(test_helpers.DjFoo)
+
+        # Assert
+        self.assertEqual(base_cls_metadata, cls_metadata)
+        self.assertEqual(base_cls_metadata, cls_metadata_from_get_bases)
+
 
 class TestGetCCBVLink(unittest.TestCase):
     @staticmethod
@@ -100,7 +122,7 @@ class TestGetCCBVLink(unittest.TestCase):
         response = requests.get(ccbv_url)
         return response.status_code
 
-    def test_ccbv_link_returns_link_for_CBV_cls(self):
+    def test_ccbv_link_returns_link_for_cbv_cls(self):
         # Arrange
         version: str = get_version().rsplit(".", 1)[0]
         module: str = TemplateView.__module__
@@ -111,9 +133,8 @@ class TestGetCCBVLink(unittest.TestCase):
 
         # Assert
         self.assertEqual(expected_ccbv_url, ccbv_url)
-        # self.assertTrue(self.ping_ccbv_url(ccbv_url), 200)
 
-    def test_ccbv_link_returns_link_for_CBV_method(self):
+    def test_ccbv_link_returns_link_for_cbv_method(self):
         # Arrange
         cbv_method = TemplateView.get_template_names
 
@@ -127,13 +148,24 @@ class TestGetCCBVLink(unittest.TestCase):
 
         # Assert
         self.assertEqual(expected_ccbv_url, ccbv_url)
-        # self.assertTrue(self.ping_ccbv_url(ccbv_url), 200)
 
-    def test_ccbv_link_does_not_return_link_for_non_CBV_cls(self):
+    @patch.object(inspect, 'isclass', return_value=False)
+    def test_ccbv_link_does_not_return_link_for_cbv_nonclass(self, _):
+        # Arrange
+        mock_obj = Mock()
+        mock_obj.__module__ = TemplateView.__module__
+
+        # Act
+        ccbv_url = get_ccbv_link(mock_obj)
+
+        # Assert
+        self.assertEqual(None, ccbv_url)
+
+    def test_ccbv_link_does_not_return_link_for_non_cbv_cls(self):
         # Act/Assert
         self.assertIsNone(get_ccbv_link(views.RenderHtmlView))
 
-    def test_ccbv_link_does_not_return_link_for_non_CBV_method(self):
+    def test_ccbv_link_does_not_return_link_for_non_cbv_method(self):
         # Act/Assert
         self.assertIsNone(get_ccbv_link(views.RenderHtmlView.get_context_data))
 
@@ -269,6 +301,10 @@ class TestClassHasMethod(unittest.TestCase):
         # Act/Assert
         self.assertFalse(class_has_method(test_helpers.Foo, "color"))
 
+    def test_class_has_method_returns_false_for_nonexistent_method(self):
+        # Act/Assert
+        self.assertFalse(class_has_method(test_helpers.Foo, "some_method"))
+
     def test_class_has_method_returns_true_for_inherited_method(self):
         # Act/Assert
         self.assertTrue(class_has_method(test_helpers.FuturisticFoo, "greet"))
@@ -299,3 +335,129 @@ class TestGetSourcecode(unittest.TestCase):
         # Assert
         self.assertFalse("#" in sourcecode)
         self.assertEqual(sourcecode, inspect.getsource(test_helpers.sample_func2))
+
+
+class TestGetSuperCalls(unittest.TestCase):
+    def test_method_with_no_super_returns_none(self):
+        # Act
+        super_calls = get_super_calls(test_helpers.Foo, test_helpers.Foo.goodbye)
+
+        # Assert
+        self.assertIsNone(super_calls)
+
+    def test_super_call_that_resolves_to_direct_parent(self):
+        """
+        This test runs for the Foo and Foo.greet.
+        Foo.greet has a super call that resolves to one of its base classes, AncientFoo.
+        """
+        # Arrange
+        expected_super_call = DjCBVClassOrMethodInfo(
+            ccbv_link=None,
+            name=test_helpers.AncientFoo.greet.__qualname__,
+            signature=str(inspect.signature(test_helpers.AncientFoo.greet))
+        )
+
+        # Act
+        super_calls = get_super_calls(test_helpers.Foo, test_helpers.Foo.greet)
+
+        # Assert
+        self.assertEqual(1, len(super_calls))
+        self.assertEqual(expected_super_call, super_calls[0])
+
+    def test_super_call_that_resolves_to_ancestor(self):
+        """
+        This test runs for FuturisticFoo and FuturisticFoo.customize_greet.
+        FuturisticFoo.customize_greet has a super call that resolves to one of its mro classes, AncientFoo.
+        """
+        # Arrange
+        expected_super_call = DjCBVClassOrMethodInfo(
+            ccbv_link=None,
+            name=test_helpers.AncientFoo.customize_greet.__qualname__,
+            signature=str(inspect.signature(test_helpers.AncientFoo.customize_greet))
+        )
+
+        # Act
+        super_calls = get_super_calls(test_helpers.FuturisticFoo, test_helpers.FuturisticFoo.customize_greet)
+
+        # Assert
+        self.assertEqual(1, len(super_calls))
+        self.assertEqual(expected_super_call, super_calls[0])
+
+    def test_super_call_that_does_not_resolve(self):
+        # Arrange
+        expected_super_call = {}
+
+        # Act
+        super_calls = get_super_calls(test_helpers.FuturisticFoo, test_helpers.FuturisticFoo.test)
+
+        # Assert
+        self.assertEqual(1, len(super_calls))
+        self.assertEqual(expected_super_call, super_calls[0])
+
+    def test_super_call_for_different_method_than_calling_method(self):
+        # Arrange
+        expected_super_call = DjCBVClassOrMethodInfo(
+            ccbv_link=None,
+            name=test_helpers.AncientFoo.greet_in_spanish.__qualname__,
+            signature=str(inspect.signature(test_helpers.AncientFoo.greet_in_spanish))
+        )
+
+        # Act
+        super_calls = get_super_calls(test_helpers.FuturisticFoo, test_helpers.FuturisticFoo.excited_spanish_greet)
+
+        # Assert
+        self.assertEqual(1, len(super_calls))
+        self.assertEqual(expected_super_call, super_calls[0])
+
+
+class TestGetRequest(unittest.TestCase):
+    def test_get_request_from_setup(self):
+        # Arrange
+        request = RequestFactory().get("/")
+        cbv_instance = create_autospec(views.HelloTest)
+        cbv_method = MagicMock()
+        cbv_method.__name__ = "setup"
+
+        # Act
+        returned_request = get_request(cbv_instance, cbv_method, request)
+
+        # Assert
+        self.assertEqual(request, returned_request)
+
+    def test_get_request_from_setup_where_request_not_found(self):
+        """
+        This will probably never happen, but if the first arg of setup is not
+        an HttpRequest object, then raise exception.
+        """
+        # Arrange
+        cbv_instance = create_autospec(views.HelloTest)
+        cbv_method = MagicMock()
+        cbv_method.__name__ = "setup"
+
+        # Act/Assert
+        with self.assertRaises(Exception):
+            get_request(cbv_instance, cbv_method, Mock())
+
+    def test_get_request_from_instance(self):
+        # Arrange
+        request = RequestFactory().get("/")
+        cbv_instance = create_autospec(views.HelloTest)
+        cbv_instance.request = request
+        cbv_method = MagicMock()
+        cbv_method.__name__ = "dispatch"
+
+        # Act
+        returned_request = get_request(cbv_instance, cbv_method)
+
+        # Assert
+        self.assertEqual(request, returned_request)
+
+    def test_get_request_raises_exception_if_request_not_found(self):
+        # Arrange
+        cbv_instance = create_autospec(views.HelloTest)
+        cbv_method = MagicMock()
+        cbv_method.__name__ = "some_method"
+
+        # Act/Assert
+        with self.assertRaises(Exception):
+            get_request(cbv_instance, cbv_method)
