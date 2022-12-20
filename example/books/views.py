@@ -8,7 +8,8 @@ from django.views.generic import (
     CreateView,
     UpdateView,
     DeleteView,
-    RedirectView
+    RedirectView,
+    View
 )
 from django.urls import reverse_lazy
 
@@ -24,7 +25,12 @@ class FooMixin:
         return 'Yo this is a test!'
 
 
-class BookListView(FooMixin, ListView):
+class Coffee:
+    def greet(self):
+        return "yo"
+
+
+class BookListView(Coffee, FooMixin, ListView):
     model = Book
 
     def get_favorite_book(self):
@@ -32,6 +38,7 @@ class BookListView(FooMixin, ListView):
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
+        """ a doctstring with super().omgomg() """
         context = super().get_context_data(**kwargs)
         context["now"] = "the time right now"
         logger.error('In context data!')
@@ -41,6 +48,10 @@ class BookListView(FooMixin, ListView):
 
         # ctx_object_name = super().get_context_object_name(Book.objects.all())
         # print(ctx_object_name)
+        x = super(Coffee, self).test()
+        # x = super().greet()
+
+        # b = super().get_favorite_book()
         return context
 
 
@@ -48,7 +59,19 @@ def hello(request):
     return HttpResponse('yo')
 
 
+class HelloTest(View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse("hello from a CBV View!")
+
+
 def hello_html(request):
+    books = Book.objects.all()
+    authors = Author.objects.all()
+
+    # from pprint import pformat
+
+    book_str = str(books)
+    author_str = str(authors)
     return render(request, 'books/hello.html', {})
 
 
