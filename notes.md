@@ -135,3 +135,29 @@
 - TODO:
   - drf ccbv_links
   - reminder to make tests for inspect.ismethod, isfunction, isroutine
+- super stuff
+  - https://stackoverflow.com/questions/3589311/get-defining-class-of-unbound-method-object-in-python-3/25959545#25959545
+
+# 11/1
+- committed clean up for super call
+  - ignore comments/docstring
+  - support old usage of super, ex. `super(cls, instance)`
+- TODO:
+  - move back helper funcs in mixins to utils
+  - clean up
+  - type hints!
+  - css!!
+  - test time with/without djcbv
+  - any package settings?
+  - drf support?
+    - maybe not because doesnt render HTML (not counting admin)
+
+# 11/15
+- clean up css ✅
+- TODO:
+  - clean up backend code
+  - clean up js code
+  - type hints
+  - tests!!!
+  - linting/formatting
+  - packaging
