@@ -2,6 +2,7 @@ import logging
 import re
 from typing import Any, Callable, Dict, List, Tuple, Optional
 
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.urls import resolve
 
@@ -12,7 +13,7 @@ from django_cbv_inspect import utils, views
 logger = logging.getLogger(__name__)
 
 
-class InspectorToolbar:
+class DjCbvToolbar:
     def __init__(self, request):
         self.request = request
         self.init_logs()
@@ -42,6 +43,9 @@ class InspectorToolbar:
 class DjCbvInspectMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+
+    def show_toolbar(self):
+        return settings.DEBUG
 
     @staticmethod
     def _is_response_insertable(response: HttpResponse) -> bool:
@@ -73,8 +77,21 @@ class DjCbvInspectMiddleware:
                 x for x in view_func.view_class.__bases__ if x is not DjCbvInspectMixin
             )
 
+    def _add_djcbv_mixin(self, view_func: Callable) -> None:
+        """
+        Add mixin to view function.
+        """
+        if utils.is_cbv_view(view_func):
+            view_func.view_class.__bases__ = (
+                DjCbvInspectMixin,
+                *view_func.view_class.__bases__
+            )
+
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        i = InspectorToolbar(request)
+        if not self.show_toolbar():
+            return self.get_response(request)
+
+        toolbar = DjCbvToolbar(request)
 
         response = self.get_response(request)
 
@@ -85,9 +102,9 @@ class DjCbvInspectMiddleware:
             INSERT_BEFORE = "</body>"
             response_parts = re.split(INSERT_BEFORE, content, flags=re.IGNORECASE)
 
-            # insert djcbv content before closing body tag
+            # insert djCbv content before closing body tag
             if len(response_parts) > 1:
-                djcbv_content = i.get_content()
+                djcbv_content = toolbar.get_content()
                 response_parts[-2] += djcbv_content
                 response.content = INSERT_BEFORE.join(response_parts)
 
@@ -97,8 +114,5 @@ class DjCbvInspectMiddleware:
         return response
 
     def process_view(self, request: HttpResponse, view_func: Callable, view_args: Tuple, view_kwargs: Dict) -> None:
-        if utils.is_cbv_view(view_func):
-            view_func.view_class.__bases__ = (
-                DjCbvInspectMixin,
-                *view_func.view_class.__bases__
-            )
+        if self.show_toolbar():
+            self._add_djcbv_mixin(view_func)

@@ -2,6 +2,7 @@ from unittest.mock import patch, MagicMock, create_autospec
 
 from django.http import HttpResponse
 from django.test import Client, RequestFactory, TestCase
+from django.test.utils import override_settings
 from django.urls import resolve
 
 from django_cbv_inspect.middleware import DjCbvInspectMiddleware
@@ -14,9 +15,55 @@ class TestDjCBVInspectMiddleware(TestCase):
         self.middleware = DjCbvInspectMiddleware(self.mock_get_response)
         self.request = RequestFactory().get('/simple_cbv_render')
 
-    def test_client_request_for_cbv(self):
+        self.patch_show_toolbar = patch.object(DjCbvInspectMiddleware, 'show_toolbar', return_value=True)
+        self.mock_show_toolbar = self.patch_show_toolbar.start()
+
+        self.addCleanup(patch.stopall)
+
+    @patch('django_cbv_inspect.middleware.DjCbvToolbar.__init__')
+    @patch('django_cbv_inspect.middleware.DjCbvInspectMiddleware._add_djcbv_mixin')
+    def test_client_request_for_cbv_returns_early_when_show_toolbar_false(self, mock_add_mixin, mock_toolbar_init):
         """
-        Test the end-to-end request/response for a class-based view.
+        Test the end-to-end request/response for a class-based view when the toolbar should not run.
+
+        Test that the middleware's process_view does not run and exits early.
+        Note: Check to show toolbar happens in two places in the middleware:
+            1. __call__ method
+            2. process_view method(this gets called on all get_response calls)
+        """
+        # Arrange
+        self.mock_show_toolbar.return_value = False
+        client = Client()
+
+        # Act
+        response = client.get('/simple_cbv_render')
+
+        # Assert
+        self.assertFalse('id="djCbv"' in response.content.decode(response.charset))
+        mock_toolbar_init.assert_not_called()
+        mock_add_mixin.assert_not_called()
+
+    @override_settings(DEBUG=False)
+    def test_middleware_show_toolbar_check_reads_from_settings(self):
+        """
+        Test that the show_toolbar method determines value based on settings.DEBUG.
+
+        Override DEBUG settings to False and check that the show_toolbar() returns False.
+        """
+        # Arrange
+        self.patch_show_toolbar.stop()  # temporarily stop this mock!
+
+        # Act
+        should_show_toolbar = self.middleware.show_toolbar()
+
+        self.patch_show_toolbar.start()  # start this mock again!
+
+        # Assert
+        self.assertFalse(should_show_toolbar)
+
+    def test_client_request_for_cbv_happy_path(self):
+        """
+        Test the end-to-end request/response for a class-based view when the toolbar should run.
 
         Assert that the djCbv markup is in the response content and the
         middleware cleaned up the mixin class from the original request.
@@ -35,6 +82,7 @@ class TestDjCBVInspectMiddleware(TestCase):
     def test_client_request_for_fbv(self):
         """
         Test the end-to-end request/response for a function-based view.
+
         Assert that djCbv markup is in the response content, but shows
         appropriate data for fbv.
         """
@@ -53,8 +101,8 @@ class TestDjCBVInspectMiddleware(TestCase):
     def test_middleware_returns_response_if_response_not_insertable(self, _, __):
         """
         Test that the middleware does not append djCbv markup
-        to a non-html response by checking that the get_response content
-        is same as the response after middleware finishes.
+        to a non-html response by checking that the get_response() content
+        is same as the content of the response returned by the middleware.
         """
         # Arrange
         response = create_autospec(HttpResponse)
@@ -72,8 +120,8 @@ class TestDjCBVInspectMiddleware(TestCase):
     def test_middleware_returns_response_for_malformed_html(self, _, __):
         """
         Test that the middleware does not append djCbv markup
-        to a malformed html response by checking that the get_response content
-        is same as the response after middleware finishes.
+        to a malformed html response by checking that the get_response() content
+        is same as the content of the response returned by the middleware.
         """
         # Arrange
         response = create_autospec(HttpResponse)
