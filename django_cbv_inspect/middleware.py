@@ -1,9 +1,11 @@
 import logging
 import re
+from typing import Any, Callable, Dict, List, Tuple, Optional
 
+from django.http import HttpRequest, HttpResponse
 from django.urls import resolve
 
-from django_cbv_inspect.mixins import DjCBVInspectMixin
+from django_cbv_inspect.mixins import DjCbvInspectMixin
 from django_cbv_inspect import utils, views
 
 
@@ -18,32 +20,31 @@ class InspectorToolbar:
     def init_logs(self) -> None:
         match = resolve(self.request.path)
 
-        self.request._djcbv_inspect_metadata = {
-            "path": self.request.path,
-            "method": self.request.method,
-            "logs": {},
-            "view_path": match._func_path,
-            "url_name": match.view_name,
-            "args": match.args,
-            "kwargs": match.kwargs,
-        }
+        metadata = utils.DjCbvRequestMetadata(
+            path=self.request.path,
+            method=self.request.method,
+            view_path=match._func_path,
+            url_name=match.view_name,
+            args=match.args,
+            kwargs=match.kwargs
+        )
 
-        if utils.is_view_cbv(match.func):
-            self.request._djcbv_inspect_metadata.update({
-                "base_classes": utils.get_bases(match.func.view_class),
-                "mro": utils.get_mro(match.func.view_class)
-            })
+        if utils.is_cbv_view(match.func):
+            metadata.base_classes = utils.get_bases(match.func.view_class)
+            metadata.mro = utils.get_mro(match.func.view_class)
+
+        self.request._djcbv_inspect_metadata = metadata
 
     def get_content(self) -> None:
         return views.render_djcbv_panel(self.request)
 
 
-class DjCBVInspectMiddleware:
+class DjCbvInspectMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     @staticmethod
-    def _is_response_insertable(response):
+    def _is_response_insertable(response: HttpResponse) -> bool:
         """
         Determine if djcbv_inspect content can be inserted into a response.
         """
@@ -61,18 +62,18 @@ class DjCBVInspectMiddleware:
             and not streaming_response
         )
 
-    def _remove_djcbv_mixin(self, request):
+    def _remove_djcbv_mixin(self, request: HttpRequest) -> None:
         """
         Remove mixin if its present in cbv view function.
         """
         view_func = resolve(request.path).func
 
-        if utils.is_view_cbv(view_func):
+        if utils.is_cbv_view(view_func):
             view_func.view_class.__bases__ = tuple(
-                x for x in view_func.view_class.__bases__ if x is not DjCBVInspectMixin
+                x for x in view_func.view_class.__bases__ if x is not DjCbvInspectMixin
             )
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         i = InspectorToolbar(request)
 
         response = self.get_response(request)
@@ -95,10 +96,9 @@ class DjCBVInspectMiddleware:
 
         return response
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        if utils.is_view_cbv(view_func):
+    def process_view(self, request: HttpResponse, view_func: Callable, view_args: Tuple, view_kwargs: Dict) -> None:
+        if utils.is_cbv_view(view_func):
             view_func.view_class.__bases__ = (
-                DjCBVInspectMixin,
+                DjCbvInspectMixin,
                 *view_func.view_class.__bases__
             )
-        return

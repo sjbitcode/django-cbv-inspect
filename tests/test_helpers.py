@@ -52,7 +52,7 @@ class FuturisticFoo(MixinFoo, Foo):
         super().some_nonexistent_method()
 
 
-class DjFoo(mixins.DjCBVInspectMixin, FuturisticFoo):
+class DjFoo(mixins.DjCbvInspectMixin, FuturisticFoo):
     pass
 
 

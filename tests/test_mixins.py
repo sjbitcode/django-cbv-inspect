@@ -1,8 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import RequestFactory, TestCase
 
-from django_cbv_inspect.mixins import DjCBVInspectMixin
+from django_cbv_inspect.mixins import DjCbvInspectMixin
 
 from . import views
 
@@ -16,10 +16,10 @@ class TestDjCBVInspectMixin(TestCase):
         self.request = RequestFactory().get('/simple_cbv_render')
 
         # DjCBVInspectMixin only cares about the logs attr
-        self.request._djcbv_inspect_metadata = {"logs": {}}
+        self.request._djcbv_inspect_metadata = Mock(logs={})
         self.view_func = views.RenderHtmlView.as_view()
         self.view_func.view_class.__bases__ = (
-            DjCBVInspectMixin,
+            DjCbvInspectMixin,
             *self.view_func.view_class.__bases__
         )
 
@@ -38,7 +38,7 @@ class TestDjCBVInspectMixin(TestCase):
         # Act
         response = self.view_func(self.request)
         original_request = response._request
-        request_logs = original_request._djcbv_inspect_metadata.get('logs')
+        request_logs = original_request._djcbv_inspect_metadata.logs
 
         # Assert
         self.assertTrue(len(request_logs) > 0)

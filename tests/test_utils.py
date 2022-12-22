@@ -9,8 +9,8 @@ from django.views.generic import TemplateView
 import requests
 
 from django_cbv_inspect.utils import (
-    DjCBVClassOrMethodInfo,
-    is_view_cbv,
+    DjCbvClassOrMethodInfo,
+    is_cbv_view,
     collect_parent_classes,
     get_bases,
     get_mro,
@@ -25,7 +25,7 @@ from django_cbv_inspect.utils import (
     get_super_calls,
     get_request
 )
-from django_cbv_inspect.mixins import DjCBVInspectMixin
+from django_cbv_inspect.mixins import DjCbvInspectMixin
 from . import test_helpers, views, models
 
 
@@ -36,7 +36,7 @@ class TestIsViewCbv(unittest.TestCase):
         view_func = views.RenderHtmlView.as_view()
 
         # Act
-        from_cbv = is_view_cbv(view_func)
+        from_cbv = is_cbv_view(view_func)
 
         # Assert
         self.assertTrue(from_cbv)
@@ -46,7 +46,7 @@ class TestIsViewCbv(unittest.TestCase):
         view_func = views.fbv_render
 
         # Act
-        from_cbv = is_view_cbv(view_func)
+        from_cbv = is_cbv_view(view_func)
 
         # Assert
         self.assertFalse(from_cbv)
@@ -60,7 +60,7 @@ class TestCollectParentClasses(unittest.TestCase):
         mro_cls_metadata = []
 
         for mro_cls in mro:
-            mro_cls_metadata.append(DjCBVClassOrMethodInfo(
+            mro_cls_metadata.append(DjCbvClassOrMethodInfo(
                 ccbv_link=None,
                 name=f"{mro_cls.__module__}.{mro_cls.__name__}",
                 signature=None
@@ -80,7 +80,7 @@ class TestCollectParentClasses(unittest.TestCase):
         base_cls_metadata = []
 
         for base_cls in bases:
-            base_cls_metadata.append(DjCBVClassOrMethodInfo(
+            base_cls_metadata.append(DjCbvClassOrMethodInfo(
                 ccbv_link=None,
                 name=f"{base_cls.__module__}.{base_cls.__name__}",
                 signature=None
@@ -100,8 +100,8 @@ class TestCollectParentClasses(unittest.TestCase):
         base_cls_metadata = []
 
         for base_cls in bases:
-            if base_cls is not DjCBVInspectMixin:
-                base_cls_metadata.append(DjCBVClassOrMethodInfo(
+            if base_cls is not DjCbvInspectMixin:
+                base_cls_metadata.append(DjCbvClassOrMethodInfo(
                     ccbv_link=None,
                     name=f"{base_cls.__module__}.{base_cls.__name__}",
                     signature=None
@@ -351,7 +351,7 @@ class TestGetSuperCalls(unittest.TestCase):
         Foo.greet has a super call that resolves to one of its base classes, AncientFoo.
         """
         # Arrange
-        expected_super_call = DjCBVClassOrMethodInfo(
+        expected_super_call = DjCbvClassOrMethodInfo(
             ccbv_link=None,
             name=test_helpers.AncientFoo.greet.__qualname__,
             signature=str(inspect.signature(test_helpers.AncientFoo.greet))
@@ -370,7 +370,7 @@ class TestGetSuperCalls(unittest.TestCase):
         FuturisticFoo.customize_greet has a super call that resolves to one of its mro classes, AncientFoo.
         """
         # Arrange
-        expected_super_call = DjCBVClassOrMethodInfo(
+        expected_super_call = DjCbvClassOrMethodInfo(
             ccbv_link=None,
             name=test_helpers.AncientFoo.customize_greet.__qualname__,
             signature=str(inspect.signature(test_helpers.AncientFoo.customize_greet))
@@ -396,7 +396,7 @@ class TestGetSuperCalls(unittest.TestCase):
 
     def test_super_call_for_different_method_than_calling_method(self):
         # Arrange
-        expected_super_call = DjCBVClassOrMethodInfo(
+        expected_super_call = DjCbvClassOrMethodInfo(
             ccbv_link=None,
             name=test_helpers.AncientFoo.greet_in_spanish.__qualname__,
             signature=str(inspect.signature(test_helpers.AncientFoo.greet_in_spanish))

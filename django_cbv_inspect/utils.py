@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import functools
 import inspect
 import logging
 from pprint import pformat
 import re
-from typing import Any, Callable, Dict, List, Literal, Type, Union, Optional
+from typing import Any, Callable, Dict, List, Literal, Tuple, Type, Union, Optional
 
 from django import get_version
 from django.http import HttpRequest
@@ -18,29 +18,68 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class DjCBVClassOrMethodInfo:
+class DjCbvRequestMetadata:
+    path: str
+    method: str
+    view_path: str
+    url_name: str
+    args: Tuple[Any]
+    kwargs: Dict[str, Any]
+    logs: Dict = field(default_factory=dict)
+    base_classes: Optional[List] = None
+    mro: Optional[List] = None
+
+
+@dataclass
+class DjCbvLog:
+    order: int = 0
+    indent: int = 0
+
+    is_parent: bool = False
+    parent_list: List[str] = field(default_factory=list)
+
+    name: str = None
+    args: Tuple[str] = field(default_factory=tuple)
+    kwargs: Dict[str, str] = field(default_factory=dict)
+    return_value: Any = None
+    signature: str = None
+    path: str = None
+    super_calls: List[str] = field(default_factory=list)
+    ccbv_link: str = None
+
+    @property
+    def parents(self) -> str:
+        return " ".join(self.parent_list)
+
+    @property
+    def padding(self) -> int:
+        return self.indent * 30
+
+
+@dataclass
+class DjCbvClassOrMethodInfo:
     ccbv_link: str = None
     name: str = None
     signature: str = None
 
 
-def is_view_cbv(func: Callable) -> bool:
+def is_cbv_view(func: Callable) -> bool:
     """
     Determine if a function is a result of a CBV as_view() call.
     """
     return hasattr(func, "view_class")
 
 
-def collect_parent_classes(cls: Type, attr: Literal["__mro__", "__bases__"]):
+def collect_parent_classes(cls: Type, attr: Literal["__mro__", "__bases__"]) -> List:
     """
     Iterate over cls.attr and return all classes except DjCBVInspectMixin
     """
     classes = []
 
     for cls in getattr(cls, attr, []):
-        if cls is not mixins.DjCBVInspectMixin:
+        if cls is not mixins.DjCbvInspectMixin:
             classes.append(
-                DjCBVClassOrMethodInfo(
+                DjCbvClassOrMethodInfo(
                     ccbv_link=get_ccbv_link(cls),
                     name=f"{cls.__module__}.{cls.__name__}"
                 )
@@ -172,7 +211,7 @@ def get_super_calls(cls: Type, method: Callable) -> List:
     if not matches:
         return
 
-    super_metadata: List[DjCBVClassOrMethodInfo] = []
+    super_metadata: List[DjCbvClassOrMethodInfo] = []
     mro_classes: List = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", cls.__mro__))
     method_cls: Type = get_class_from_method(method)  # the class that defines this method containing super calls
 
@@ -192,7 +231,7 @@ def get_super_calls(cls: Type, method: Callable) -> List:
                 #   getattr(ListView, "get_context_data") is <function MultipleObjectMixin.get_context_data ...>
                 #   because the method is defined or overriden on MultipleObjectMixin.
                 # We can collect this metadata without iterating further through MRO classes
-                method_info = DjCBVClassOrMethodInfo(
+                method_info = DjCbvClassOrMethodInfo(
                     ccbv_link=get_ccbv_link(attr),
                     name=attr.__qualname__,
                     signature=str(inspect.signature(attr))

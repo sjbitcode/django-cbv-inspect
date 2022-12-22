@@ -12,33 +12,7 @@ from django_cbv_inspect import utils
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class FunctionLog:
-    order: int = 0
-    indent: int = 0
-
-    is_parent: bool = False
-    parent_list: List[str] = field(default_factory=list)
-
-    name: str = None
-    args: Tuple[str] = field(default_factory=tuple)
-    kwargs: Dict[str, str] = field(default_factory=dict)
-    return_value: Any = None
-    signature: str = None
-    path: str = None
-    super_calls: List[str] = field(default_factory=list)
-    ccbv_link: str = None
-
-    @property
-    def parents(self):
-        return " ".join(self.parent_list)
-
-    @property
-    def padding(self):
-        return self.indent * 30
-
-
-class DjCBVInspectMixin:
+class DjCbvInspectMixin:
     indent = 0
     order = 1
 
@@ -61,7 +35,7 @@ class DjCBVInspectMixin:
             and name in self.allowed_callables
         ):
             tab = "\t"
-            f = FunctionLog()
+            f = utils.DjCbvLog()
 
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
@@ -72,11 +46,11 @@ class DjCBVInspectMixin:
                 f.indent = self.indent
 
                 request = utils.get_request(self, attr, *args)
-                request._djcbv_inspect_metadata["logs"][f.order] = f
+                request._djcbv_inspect_metadata.logs[f.order] = f
 
                 # The following try/except sets parents and parent statuses on the current and prior log, respectively.
                 try:
-                    prior_log = request._djcbv_inspect_metadata["logs"][f.order-1]
+                    prior_log = request._djcbv_inspect_metadata.logs[f.order-1]
 
                     # is prior log a parent of current log?
                     if prior_log.indent < f.indent:
@@ -94,7 +68,7 @@ class DjCBVInspectMixin:
 
                         # iterate over list backwards to get the closest parent faster
                         for key in ancestor_log_keys[::-1]:
-                            ancestor_log = request._djcbv_inspect_metadata["logs"][key]
+                            ancestor_log = request._djcbv_inspect_metadata.logs[key]
 
                             # if ancestor log is current log's legitimate ancestor, take its parents and stop iteration
                             if ancestor_log.is_parent and ancestor_log.indent < f.indent:
