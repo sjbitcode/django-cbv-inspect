@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Any, Callable, Dict, List, Tuple, Optional
+from typing import Callable, Dict, Tuple
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
@@ -44,7 +44,8 @@ class DjCbvInspectMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def show_toolbar(self):
+    @staticmethod
+    def show_toolbar() -> bool:
         return settings.DEBUG
 
     @staticmethod
@@ -66,7 +67,8 @@ class DjCbvInspectMiddleware:
             and not streaming_response
         )
 
-    def _remove_djcbv_mixin(self, request: HttpRequest) -> None:
+    @staticmethod
+    def _remove_djcbv_mixin(request: HttpRequest) -> None:
         """
         Remove mixin if its present in cbv view function.
         """
@@ -77,7 +79,8 @@ class DjCbvInspectMiddleware:
                 x for x in view_func.view_class.__bases__ if x is not DjCbvInspectMixin
             )
 
-    def _add_djcbv_mixin(self, view_func: Callable) -> None:
+    @staticmethod
+    def _add_djcbv_mixin(view_func: Callable) -> None:
         """
         Add mixin to view function.
         """
