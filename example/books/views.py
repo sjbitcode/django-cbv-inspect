@@ -1,6 +1,7 @@
 import logging
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 
 from django.views.generic import (
     ListView,
@@ -12,6 +13,8 @@ from django.views.generic import (
     View
 )
 from django.urls import reverse_lazy
+from django_cbv_inspect.decorators import djcbv_exclude
+from django_cbv_inspect.mixins import DjCbvExcludeMixin
 
 from .forms import AuthorForm, BookForm
 from .models import Author, Book
@@ -30,7 +33,9 @@ class Coffee:
         return "yo"
 
 
+@method_decorator(djcbv_exclude, name='dispatch')
 class BookListView(Coffee, FooMixin, ListView):
+    # class BookListView(DjCbvExcludeMixin, Coffee, FooMixin, ListView):
     model = Book
 
     def get_favorite_book(self):
@@ -64,6 +69,7 @@ class HelloTest(View):
         return HttpResponse("hello from a CBV View!")
 
 
+# @djcbv_exclude
 def hello_html(request):
     books = Book.objects.all()
     authors = Author.objects.all()
@@ -72,6 +78,11 @@ def hello_html(request):
 
     book_str = str(books)
     author_str = str(authors)
+    return render(request, 'books/hello.html', {})
+
+
+# @djcbv_exclude
+def hello_html2(request):
     return render(request, 'books/hello.html', {})
 
 

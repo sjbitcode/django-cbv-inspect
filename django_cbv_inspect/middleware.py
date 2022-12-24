@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Tuple, Optional, Union
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
@@ -74,24 +74,51 @@ class DjCbvInspectMiddleware:
         """
         view_func = resolve(request.path).func
 
-        if utils.is_cbv_view(view_func):
-            view_func.view_class.__bases__ = tuple(
-                x for x in view_func.view_class.__bases__ if x is not DjCbvInspectMixin
-            )
+        view_func.view_class.__bases__ = tuple(
+            x for x in view_func.view_class.__bases__ if x is not DjCbvInspectMixin
+        )
 
     @staticmethod
     def _add_djcbv_mixin(view_func: Callable) -> None:
         """
         Add mixin to view function.
         """
-        if utils.is_cbv_view(view_func):
-            view_func.view_class.__bases__ = (
-                DjCbvInspectMixin,
-                *view_func.view_class.__bases__
-            )
+        view_func.view_class.__bases__ = (
+            DjCbvInspectMixin,
+            *view_func.view_class.__bases__
+        )
+
+    @staticmethod
+    def is_view_excluded(request: HttpRequest) -> bool:
+        view_func = resolve(request.path).func
+
+        if hasattr(view_func, 'djcbv_exclude'):
+            return True
+
+        return False
+
+    def process_request(self, request):
+        """
+        Determine if the middleware should process the request.
+
+        Will process requests meet the following criteria
+            1. class-based views
+            2. show_toolbar True
+            3. view not excluded
+        """
+        if not utils.is_cbv_request(request):
+            return False
+
+        if not self.show_toolbar():
+            return False
+
+        if self.is_view_excluded(request):
+            return False
+
+        return True
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        if not self.show_toolbar():
+        if not self.process_request(request):
             return self.get_response(request)
 
         toolbar = DjCbvToolbar(request)
@@ -117,5 +144,5 @@ class DjCbvInspectMiddleware:
         return response
 
     def process_view(self, request: HttpResponse, view_func: Callable, view_args: Tuple, view_kwargs: Dict) -> None:
-        if self.show_toolbar():
+        if self.process_request(request):
             self._add_djcbv_mixin(view_func)

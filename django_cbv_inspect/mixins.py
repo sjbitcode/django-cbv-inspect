@@ -1,12 +1,12 @@
-from dataclasses import dataclass, field
 import functools
 import inspect
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import List
 
+from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 
-from django_cbv_inspect import utils
+from django_cbv_inspect import utils, decorators
 
 
 logger = logging.getLogger(__name__)
@@ -101,3 +101,9 @@ class DjCbvInspectMixin:
 
             return wrapper
         return attr
+
+
+class DjCbvExcludeMixin:
+    @method_decorator(decorators.djcbv_exclude)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)

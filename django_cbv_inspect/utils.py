@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Literal, Tuple, Type, Union, Optio
 
 from django import get_version
 from django.http import HttpRequest
+from django.urls import resolve
 
 from django_cbv_inspect import mixins
 
@@ -68,6 +69,15 @@ def is_cbv_view(func: Callable) -> bool:
     Determine if a function is a result of a CBV as_view() call.
     """
     return hasattr(func, "view_class")
+
+
+def is_cbv_request(request: HttpRequest) -> bool:
+    """
+    Determine if a request will map to a CBV.
+    """
+    view_func = resolve(request.path).func
+
+    return is_cbv_view(view_func)
 
 
 def collect_parent_classes(cls: Type, attr: Literal["__mro__", "__bases__"]) -> List:
