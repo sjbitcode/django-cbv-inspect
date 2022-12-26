@@ -27,12 +27,10 @@ class DjCbvToolbar:
             view_path=match._func_path,
             url_name=match.view_name,
             args=match.args,
-            kwargs=match.kwargs
+            kwargs=match.kwargs,
+            base_classes=utils.get_bases(match.func.view_class),
+            mro=utils.get_mro(match.func.view_class),
         )
-
-        if utils.is_cbv_view(match.func):
-            metadata.base_classes = utils.get_bases(match.func.view_class)
-            metadata.mro = utils.get_mro(match.func.view_class)
 
         self.request._djcbv_inspect_metadata = metadata
 
@@ -97,7 +95,7 @@ class DjCbvInspectMiddleware:
 
         return False
 
-    def process_request(self, request):
+    def should_process_request(self, request):
         """
         Determine if the middleware should process the request.
 
@@ -118,7 +116,7 @@ class DjCbvInspectMiddleware:
         return True
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        if not self.process_request(request):
+        if not self.should_process_request(request):
             return self.get_response(request)
 
         toolbar = DjCbvToolbar(request)
@@ -144,5 +142,5 @@ class DjCbvInspectMiddleware:
         return response
 
     def process_view(self, request: HttpResponse, view_func: Callable, view_args: Tuple, view_kwargs: Dict) -> None:
-        if self.process_request(request):
+        if self.should_process_request(request):
             self._add_djcbv_mixin(view_func)
