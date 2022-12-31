@@ -343,10 +343,10 @@ def set_log_parents(order: int, request: HttpRequest) -> None:
             for key in ancestor_log_keys[::-1]:
                 ancestor_log = request._djcbv_inspect_metadata.logs[key]
 
-                # take it's parents plus itself and stop iteration
+                # if ancestor_log is a parent, copy its parents
+                # plus itself and stop iteration
                 if ancestor_log.is_parent and ancestor_log.indent < current_log.indent:
-                    current_log.parent_list = ancestor_log.parent_list
-                    current_log.parent_list.append(f"cbvInspect_{ancestor_log.order}_{ancestor_log.indent}")
+                    current_log.parent_list = ancestor_log.parent_list + [f"cbvInspect_{ancestor_log.order}_{ancestor_log.indent}"]
                     break
     except KeyError:
         pass
