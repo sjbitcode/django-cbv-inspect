@@ -57,9 +57,7 @@ class DjCbvInspectMixin:
                 log.kwargs = utils.serialize_params(kwargs)
                 log.return_value = utils.serialize_params(ret)
                 # includes 'self' argument
-                log.signature = inspect.formatargspec(
-                    *inspect.getfullargspec(attr)
-                )
+                log.signature = inspect.formatargspec(*inspect.getfullargspec(attr))
                 log.path = utils.get_path(attr)
                 log.super_calls = utils.get_super_calls(attr)
                 log.ccbv_link = utils.get_ccbv_link(attr)

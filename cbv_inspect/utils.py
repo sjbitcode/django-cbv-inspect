@@ -257,9 +257,7 @@ def get_super_calls(method: Callable) -> List:
         filter(lambda x: x.__name__ != "DjCBVInspectMixin", view_instance_cls.__mro__)
     )
     # the class that defines this method containing super calls
-    method_cls: Type = get_callable_source(
-        method
-    )
+    method_cls: Type = get_callable_source(method)
 
     # for each super call in method
     for match in matches:
