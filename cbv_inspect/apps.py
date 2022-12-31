@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class DjangoCBVInspectConfig(AppConfig):
+class CBVInspectConfig(AppConfig):
     name = "cbv_inspect"

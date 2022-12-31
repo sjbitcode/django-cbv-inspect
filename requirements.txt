@@ -1,7 +1,6 @@
 Django
 
 # dev requirements
-django-debug-toolbar
 black
 flake8
 isort

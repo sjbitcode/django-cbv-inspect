@@ -18,9 +18,3 @@ urlpatterns = [
     path("jsontest/", views.jsontest, name="jsontest"),
     path("gotobooks/", views.BookRedirect.as_view(), name="gotobooks"),
 ]
-
-if settings.DEBUG:
-    if "debug_toolbar" in settings.INSTALLED_APPS:
-        import debug_toolbar
-
-        urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
