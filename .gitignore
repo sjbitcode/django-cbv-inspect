@@ -141,3 +141,4 @@ cython_debug/
 .vscode/
 .misc/
 .DS_Store
+notes.md
