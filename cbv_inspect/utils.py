@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import functools
 import inspect
-import logging
 from pprint import pformat
 import re
 from typing import Any, Callable, Dict, List, Literal, Tuple, Type, Union, Optional

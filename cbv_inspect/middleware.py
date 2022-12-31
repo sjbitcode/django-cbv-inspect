@@ -1,6 +1,5 @@
-import logging
 import re
-from typing import Callable, Dict, Tuple, Optional, Union
+from typing import Callable, Dict, Tuple
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse

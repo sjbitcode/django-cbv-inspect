@@ -1,7 +1,6 @@
 import logging
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.utils.decorators import method_decorator
 
 from django.views.generic import (
     ListView,
@@ -13,8 +12,7 @@ from django.views.generic import (
     View
 )
 from django.urls import reverse_lazy
-from cbv_inspect.decorators import djcbv_exclude
-from cbv_inspect.mixins import DjCbvExcludeMixin
+# from cbv_inspect.decorators import djcbv_exclude
 
 from .forms import AuthorForm, BookForm
 from .models import Author, Book
