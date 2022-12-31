@@ -12,7 +12,19 @@ PYTHON=$(BIN)/python
 
 $(VENV)/bin/activate: requirements.txt
 	$(PY) -m venv $(VENV)
+	@echo "\n\033[1;36m[2/3] Upgrading pip and installing requirements 🔧 📦 🔧 \033[0m\n"
+	$(PYTHON) -m pip install --upgrade pip
 	$(BIN)/pip install -r requirements.txt
+
+
+## Run the example app
+run-example:
+	@echo "\033[1;37m---- Running migrations 🗂 ---- \033[0m\n"
+	$(PYTHON) example/manage.py migrate --noinput
+	@echo "\n\033[1;37m---- Loading fixtures 💽 ---- \033[0m\n"
+	$(PYTHON) example/manage.py loaddata fake_data.json
+	@echo "\n\033[1;37m---- Running server 🏃‍♀️ ---- \033[0m\n"
+	$(PYTHON) example/manage.py runserver
 
 
 ## Remove cached files and dirs from workspace
@@ -29,20 +41,17 @@ clean-venv:
 	rm -rf $(VENV)
 
 
-## Run tests with coverage and report xml
-test-xml: $(VENV)/bin/activate
+## Run tests with coverage and make reports
+coverage: $(VENV)/bin/activate
 	@echo "\033[1;37m---- Running unittests 🧪✨ ---- \033[0m\n"
-	$(BIN)/coverage run -m django test && $(BIN)/coverage report && $(BIN)/coverage xml
-
-
-## Run tests with coverage and report html
-test-html: $(VENV)/bin/activate
-	@echo "\033[1;37m---- Running unittests 🧪✨ ---- \033[0m\n"
-	$(BIN)/coverage run -m django test && $(BIN)/coverage report && $(BIN)/coverage html
+	DJANGO_SETTINGS_MODULE=tests.settings \
+	$(BIN)/coverage run -m django test && $(BIN)/coverage report
+	$(BIN)/coverage html
+	$(BIN)/coverage xml
 
 
 ## Format the codebase
-format:
+format: $(VENV)/bin/activate
 	@echo "\n\033[1;36m[1/4] Running pycln 👻 🧹 👻\033[0m\n"
 	pycln . --config pyproject.toml -v
 	@echo "\n\033[1;36m[2/4] Running isort 👀 👀 👀\033[0m\n"
@@ -54,7 +63,7 @@ format:
 
 
 ## Run linting
-lint:
+lint: $(VENV)/bin/activate
 	@echo "\n\033[1;36m[1/4] Running pycln check 👻 🧹 👻\033[0m\n"
 	pycln . --config pyproject.toml -vc
 	@echo "\n\033[1;36m[2/4] Running isort check 👀 👀 👀\033[0m\n"
