@@ -95,7 +95,7 @@
                 <td>
                   <div style="padding-left: {{val.padding}}px;">
                     {% if val.is_parent %}
-                      <button type="button" class="newToggleButton cbvLogsButton">-</button>
+                      <button type="button" class="cbvParentToggleButton cbvLogsButton">-</button>
                     {% endif %}
                     {% if val.ccbv_link %}
                       <a href="{{ val.ccbv_link }}" target="_blank">
@@ -319,7 +319,7 @@
     background-color: #f1f5f9;
   }
 
-  #djCbv .newToggleButton, #djCbv .cbvColCollapse {
+  #djCbv .cbvParentToggleButton, #djCbv .cbvColCollapse {
     box-sizing: content-box;
     padding: 0;
     border: 1px solid #999;
@@ -409,33 +409,41 @@
   const toolbarHandler = document.querySelector('#djCbv #djCbvHandle');
   const logContainer = document.querySelector("#djCbv .djcbv-panel");
   const djCbvExitPanelBtn = document.querySelector("#djCbv #djCbvExitPanel");
+  const columnCollapseButtons = document.querySelectorAll('.cbvColCollapse');
+  const parentToggleButtons = document.querySelectorAll('.cbvParentToggleButton');
 
-  columnCollapseButtons = document.querySelectorAll('.cbvColCollapse');
+
+  // Wire up event listeners
+  toolbarHandler.addEventListener('click', toggleLogVisibility);
+
+  djCbvExitPanelBtn.addEventListener('click', toggleLogVisibility);
+
   columnCollapseButtons.forEach(colCollapseButton => {
     colCollapseButton.addEventListener('click', toggleColumnVisibility);
   })
 
-  newtoggleButtons = document.querySelectorAll('.newToggleButton');
-  newtoggleButtons.forEach(toggleButton => {
-    toggleButton.addEventListener('click', newHandleToggleClick)
+  parentToggleButtons.forEach(toggleButton => {
+    toggleButton.addEventListener('click', toggleChildLogsVisibility)
   });
 
-  function toggleColumnVisibility(e) {
-    console.log('🍟');
-    console.log(e.target);
-    console.log(e.currentTarget);
 
+  // Event listener functions
+  function toggleLogVisibility() {
+    logContainer.classList.toggle('djcbv-hidden');
+  }
+
+  function toggleColumnVisibility(e) {
     colName = e.currentTarget.dataset.cbvCol;
     tableCells = document.querySelectorAll(`#djCbv .cbvLogEntry td[data-cbv-col="${colName}"]`);
+
     tableCells.forEach(cell => {
-      // debugger;
       children = cell.children;
       if (children.length > 0) {
-        // debugger;
         Array.from(children).forEach(child => child.classList.toggle('djcbv-hidden'));
       }
     });
-
+    
+    // // update current target's toggle button
     if (e.currentTarget.innerHTML === '-') {
       e.currentTarget.innerHTML = '+';
     }
@@ -445,104 +453,35 @@
     }
   }
 
-  function newHandleToggleClick(e){
-    console.log('🍩');
-    console.log(e.target);
-    console.log(e.currentTarget);
-    
+  function toggleChildLogsVisibility(e){
     const parent = e.currentTarget.closest('tr');
-    console.log('🎅🏼 ', parent.id);
     let parentOrder = parent.dataset.cbvOrder;
     let parentTabIndex = parent.dataset.cbvTabIndex;
     const descendantLogs = document.querySelectorAll(`tr.${parent.id}`);
 
-
+    // hide all descendents!
     if (e.currentTarget.innerHTML === '-') {
-      // hide all descendents!
       descendantLogs.forEach(el => {
         el.classList.add('djcbv-hidden');
-        let hasButton = el.querySelector('.newToggleButton');
+        let hasButton = el.querySelector('.cbvParentToggleButton');
         hasButton ? hasButton.innerHTML = '+' : null;
       });
     }
+    // show all descendents!
     else if (e.currentTarget.innerHTML === '+') {
-      // show all descendents!
       descendantLogs.forEach(el => {
         el.classList.remove('djcbv-hidden');
-        let hasButton = el.querySelector('.newToggleButton');
+        let hasButton = el.querySelector('.cbvParentToggleButton');
         hasButton ? hasButton.innerHTML = '-' : null;
       });
     }
 
-    // update button based on what just happened
+    // update current target's toggle button
     if (descendantLogs[0].classList.contains('djcbv-hidden')) {
       e.currentTarget.innerHTML = '+';
     }
     else {
       e.currentTarget.innerHTML = '-';
     }
-  }
-
-  function toggleLogVisibility() {
-    logContainer.classList.toggle('djcbv-hidden');
-  }
-
-  toolbarHandler.addEventListener('click', toggleLogVisibility);
-  djCbvExitPanelBtn.addEventListener('click', toggleLogVisibility);
-
-  ///////////////////////////////////////////////////////////////
-
-  function addLogEl(logObj) {
-    // main func to add logs to page!
-
-    console.dir(logObj);
-    let tabIndex = logObj.indent;
-    let logName = logObj.name;
-    let padding = logObj.padding;
-
-    parentLogDiv = getParentLogDiv(tabIndex);
-
-    let logDiv = document.createElement(`div`);
-    logDiv.classList.add('logEntry');
-
-    logDiv.style.paddingLeft = `${padding}px`;
-    logDiv.style.border = "1px solid blue";
-    logDiv.dataset.tabIndex = tabIndex;
-
-    // let result = document.createElement('code');
-    let result = document.createElement('div');
-    let resultCode = document.createElement('pre');
-    let header = document.createElement('div');
-    result.classList.add('result');
-    header.classList.add('header');
-    header.textContent = `${logObj.name}${logObj.signature}`
-    result.innerHTML = '<b>result</b>&nbsp';
-    result.classList.add('hidden'); // hide results now
-    resultCode.textContent = logObj.return_value
-    result.appendChild(resultCode);
-    logDiv.insertAdjacentElement('afterbegin', header);
-    logDiv.insertAdjacentElement('beforeend', result);
-
-    // add arguments to header
-    let argumentsDiv = document.createElement('div');
-    argumentsDiv.innerHTML = '<b>arguments</b>&nbsp';
-    argumentsDiv.classList.add('hidden');  // hide arguments now
-
-    let arguments = document.createElement('pre');
-
-    arguments.textContent = logObj.arguments;
-    console.log(logObj.arguments);
-    console.log(arguments.textContent);
-    argumentsDiv.appendChild(arguments);
-
-    header.insertAdjacentElement('beforeend', argumentsDiv);
-
-    // find result direct child element in parent div, and append right before that
-    parentResult = parentLogDiv.querySelector(':scope > .result');
-    // debugger;
-    parentResult.insertAdjacentElement('beforebegin', logDiv);
-
-    // make sure parent has a button since it now has child log entries!
-    addButton(parentLogDiv);
   }
 </script>
