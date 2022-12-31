@@ -13,8 +13,8 @@ from django.views.generic import (
     View
 )
 from django.urls import reverse_lazy
-from django_cbv_inspect.decorators import djcbv_exclude
-from django_cbv_inspect.mixins import DjCbvExcludeMixin
+from cbv_inspect.decorators import djcbv_exclude
+from cbv_inspect.mixins import DjCbvExcludeMixin
 
 from .forms import AuthorForm, BookForm
 from .models import Author, Book
@@ -33,20 +33,24 @@ class Coffee:
         return "yo"
 
 
-@method_decorator(djcbv_exclude, name='dispatch')
+# @method_decorator(djcbv_exclude, name='dispatch')
 class BookListView(Coffee, FooMixin, ListView):
     # class BookListView(DjCbvExcludeMixin, Coffee, FooMixin, ListView):
     model = Book
 
+    # @djcbv_exclude
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
+
     def get_favorite_book(self):
-        logger.error('Getting favorite book!')
+        # logger.error('Getting favorite book!')
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
         """ a doctstring with super().omgomg() """
         context = super().get_context_data(**kwargs)
         context["now"] = "the time right now"
-        logger.error('In context data!')
+        # logger.error('In context data!')
         fav_book = self.get_favorite_book()
 
         context["fav_book"] = fav_book
@@ -60,6 +64,7 @@ class BookListView(Coffee, FooMixin, ListView):
         return context
 
 
+# @djcbv_exclude
 def hello(request):
     return HttpResponse('yo')
 

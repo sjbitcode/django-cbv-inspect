@@ -155,9 +155,19 @@
 # 11/15
 - clean up css ✅
 - TODO:
-  - clean up backend code
-  - clean up js code
-  - type hints
-  - tests!!!
+  - tests!!! ✅
+  - docstrings ✅
+  - type hints ✅
+  - clean up backend code ✅
+  - review decorator docstring ✅
   - linting/formatting
+  - clean up js code
   - packaging
+    - rename package to `cbv_inspect`
+
+
+removed this from mask_queryset util
+```
+# pattern = re.compile("<QuerySet \[<(?P<modelName>\w+):.*?\]>")
+# mask = "<<queryset of \g<modelName>>>"
+```

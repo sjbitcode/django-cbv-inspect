@@ -17,9 +17,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "debug_toolbar",
-    "django_cbv_inspect",
     "books",
+    "debug_toolbar",
+    "cbv_inspect",
 ]
 
 MIDDLEWARE = [
@@ -31,7 +31,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_cbv_inspect.middleware.DjCbvInspectMiddleware",
+    "cbv_inspect.middleware.DjCbvInspectMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -96,3 +96,18 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

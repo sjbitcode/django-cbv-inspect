@@ -5,11 +5,15 @@ from django.test import Client, RequestFactory, TestCase
 from django.test.utils import override_settings
 from django.urls import resolve
 
-from django_cbv_inspect.middleware import DjCbvInspectMiddleware
-from django_cbv_inspect.mixins import DjCbvInspectMixin
+from cbv_inspect.middleware import DjCbvInspectMiddleware
+from cbv_inspect.mixins import DjCbvInspectMixin
 
 
 class TestDjCBVInspectMiddleware(TestCase):
+    """
+    Tests for the `DjCbvInspectMiddleware` middleware class.
+    """
+
     def setUp(self):
         self.mock_get_response = MagicMock()
         self.middleware = DjCbvInspectMiddleware(self.mock_get_response)
@@ -18,22 +22,24 @@ class TestDjCBVInspectMiddleware(TestCase):
         self.addCleanup(patch.stopall)
 
     @override_settings(DEBUG=False)
-    def test_middleware_show_toolbar_check_reads_from_settings(self):
+    def test_show_toolbar_reads_from_settings(self):
         """
         Test that the `show_toolbar` method determines value based on settings.DEBUG.
         """
+
         # Act
         should_show_toolbar = self.middleware.show_toolbar()
 
         # Assert
         self.assertFalse(should_show_toolbar)
 
-    @patch('django_cbv_inspect.middleware.resolve')
-    def test_middleware_view_excludes_check_returns_true_when_attr_exists(self, mock_resolve):
+    @patch('cbv_inspect.middleware.resolve')
+    def test_view_excluded_check_is_true_when_attr_exists(self, mock_resolve):
         """
-        Test that the `is_view_excluded` method returns True when
-        the `djcbv_exclude` attr exists on the view function.
+        Test that the `is_view_excluded` method determines a view
+        is excluded if the `djcbv_exclude` attr exists on the view function.
         """
+
         # Arrange
         mock_resolve.return_value.func = MagicMock(djcbv_exclude=True)
 
@@ -43,12 +49,13 @@ class TestDjCBVInspectMiddleware(TestCase):
         # Assert
         self.assertTrue(is_excluded)
 
-    @patch('django_cbv_inspect.middleware.resolve')
-    def test_middleware_view_excludes_check_returns_false_when_attr_does_not_exist(self, mock_resolve):
+    @patch('cbv_inspect.middleware.resolve')
+    def test_view_excluded_check_is_false_when_attr_does_not_exist(self, mock_resolve):
         """
-        Test that the `is_view_excluded` method returns False when
-        the `djcbv_exclude` attr is missing from the view function.
+        Test that the `is_view_excluded` method determines a view is not excluded
+        if the `djcbv_exclude` attr is not present on the view function.
         """
+
         # Arrange
         mock_view_func = MagicMock()
         del mock_view_func.djcbv_exclude
@@ -60,15 +67,16 @@ class TestDjCBVInspectMiddleware(TestCase):
         # Assert
         self.assertFalse(is_excluded)
 
-    @patch('django_cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=False))
-    @patch('django_cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
-    def test_middleware_does_not_process_request_for_non_cbv_request(self, mock_toolbar_init):
+    @patch('cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=False))
+    @patch('cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
+    def test_middleware_does_not_process_request_for_fbv_request(self, mock_toolbar_init):
         """
-        Test that the `should_process_request` method returns False and the middleware exits early
-        when the request maps to a function-based view.
+        Test that the `should_process_request` makes the middleware exit early
+        for a function-based view.
 
         As a result, the DjCbvToolbar class should not be instantiated.
         """
+
         # Arrange
         response = create_autospec(HttpResponse)
         self.mock_get_response.return_value = response
@@ -80,15 +88,16 @@ class TestDjCBVInspectMiddleware(TestCase):
         mock_toolbar_init.assert_not_called()
 
     @patch.object(DjCbvInspectMiddleware, 'show_toolbar', new=MagicMock(return_value=False))
-    @patch('django_cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=True))
-    @patch('django_cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
+    @patch('cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=True))
+    @patch('cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
     def test_middleware_does_not_process_request_when_show_toolbar_is_false(self, mock_toolbar_init):
         """
-        Test that the `should_process_request` method returns False and the middleware exits early
+        Test that the `should_process_request` makes the middleware exit early
         when `show_toolbar` is False.
 
         As a result, the DjCbvToolbar class should not be instantiated.
         """
+
         # Arrange
         response = create_autospec(HttpResponse)
         self.mock_get_response.return_value = response
@@ -101,13 +110,14 @@ class TestDjCBVInspectMiddleware(TestCase):
 
     @patch.object(DjCbvInspectMiddleware, 'show_toolbar', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, 'is_view_excluded', new=MagicMock(return_value=True))
-    @patch('django_cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=True))
-    @patch('django_cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
+    @patch('cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=True))
+    @patch('cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
     def test_middleware_does_not_process_request_when_view_is_excluded(self, mock_toolbar_init):
         """
-        Test that the `should_process_request` method returns False and the middleware exits early
-        when the request for a class-based view is excluded.
+        Test that the `should_process_request` makes the middleware exit early
+        when a view is excluded.
         """
+
         # Arrange
         response = create_autospec(HttpResponse)
         self.mock_get_response.return_value = response
@@ -120,13 +130,13 @@ class TestDjCBVInspectMiddleware(TestCase):
 
     @patch.object(DjCbvInspectMiddleware, 'show_toolbar', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, 'is_view_excluded', new=MagicMock(return_value=False))
-    @patch('django_cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=True))
-    @patch('django_cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
-    def test_middleware_should_process_request_for_nonexcluded_cbv_views_when_show_toolbar_true(self, mock_toolbar_init):
+    @patch('cbv_inspect.utils.is_cbv_request', new=MagicMock(return_value=True))
+    @patch('cbv_inspect.middleware.DjCbvToolbar.__init__', return_value=None)
+    def test_middleware_should_process_request_allows_cbv_view(self, mock_toolbar_init):
         """
-        Test that the `should_process_request` method returns True and middleware runs
-        when the request for a class-based view is not excluded and `show_toolbar` is True.
+        Test that the `should_process_request` allows middleware to run fully.
         """
+
         # Arrange
         response = create_autospec(HttpResponse)
         self.mock_get_response.return_value = response
@@ -140,12 +150,12 @@ class TestDjCBVInspectMiddleware(TestCase):
     @patch.object(DjCbvInspectMiddleware, 'should_process_request', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, '_remove_djcbv_mixin', new=MagicMock())
     @patch.object(DjCbvInspectMiddleware, '_is_response_insertable', new=MagicMock(return_value=False))
-    def test_middleware_returns_response_if_response_not_insertable(self):
+    def test_middleware_exits_if_response_not_insertable(self):
         """
-        Test that the middleware does not append djCbv markup
-        to a non-html response by checking that the get_response() content
-        is same as the content of the response returned by the middleware.
+        Test that the middleware does not append djCbv markup to
+        a non-html response.
         """
+
         # Arrange
         response = create_autospec(HttpResponse)
         response.content = b'foo'
@@ -160,12 +170,12 @@ class TestDjCBVInspectMiddleware(TestCase):
     @patch.object(DjCbvInspectMiddleware, 'should_process_request', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, '_remove_djcbv_mixin', new=MagicMock())
     @patch.object(DjCbvInspectMiddleware, '_is_response_insertable', new=MagicMock(return_value=True))
-    def test_middleware_returns_response_for_malformed_html(self):
+    def test_middleware_exits_for_malformed_html_response(self):
         """
-        Test that the middleware does not append djCbv markup
-        to a malformed html response by checking that the get_response() content
-        is same as the content of the response returned by the middleware.
+        Test that the middleware does not append djCbv markup to
+        a malformed html response.
         """
+
         # Arrange
         response = create_autospec(HttpResponse)
         response.charset = 'utf-8'
@@ -182,11 +192,12 @@ class TestDjCBVInspectMiddleware(TestCase):
     @patch.object(DjCbvInspectMiddleware, 'should_process_request', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, '_remove_djcbv_mixin', new=MagicMock())
     @patch.object(DjCbvInspectMiddleware, '_is_response_insertable', new=MagicMock(return_value=True))
-    def test_middleware_inserts_toolbar_html_if_content_length_set(self):
+    def test_middleware_updates_content_length_header_if_exists(self):
         """
         Test that the middleware appends djCbv markup and updates the
-        Content-Length header.
+        Content-Length header if it exists.
         """
+
         # Arrange
         html_content = '<html><head></head><body><p>test</p></body></html>'
         response = create_autospec(HttpResponse)
@@ -208,11 +219,12 @@ class TestDjCBVInspectMiddleware(TestCase):
     @patch.object(DjCbvInspectMiddleware, 'should_process_request', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, '_remove_djcbv_mixin', new=MagicMock())
     @patch.object(DjCbvInspectMiddleware, '_is_response_insertable', new=MagicMock(return_value=True))
-    def test_middleware_inserts_toolbar_html_even_if_content_length_not_set(self):
+    def test_middleware_ignores_missing_content_length_header(self):
         """
-        Test that the middleware appends djCbv markup even if the response
-        does not have a Content-Length header.
+        Test that the middleware appends djCbv markup even if no
+        Content-Length header exists.
         """
+
         # Arrange
         html_content = '<html><head></head><body><p>test</p></body></html>'
         response = create_autospec(HttpResponse)
@@ -229,14 +241,15 @@ class TestDjCBVInspectMiddleware(TestCase):
 
     @patch.object(DjCbvInspectMiddleware, 'should_process_request', new=MagicMock(return_value=True))
     @patch.object(DjCbvInspectMiddleware, '_add_djcbv_mixin')
-    def test_middleware_process_view_runs_when_process_request_is_true(self, mock_add_mixin):
+    def test_middleware_process_view_hook_appends_mixin(self, mock_add_mixin):
         """
-        Test that the middleware `process_view` hook runs when `should_process_request`
+        Test that the `process_view` hook runs when `should_process_request`
         is True.
 
-        Even if the middleware exits early in `__call__`, the `get_response` calls which
+        Even if the middleware exits early in `__call__`, the `get_response()` call
         still triggers the `process_view` hook, hence the secondary check here.
         """
+
         # Act
         self.middleware.process_view(self.request, MagicMock(), (), {})
 
@@ -245,7 +258,7 @@ class TestDjCBVInspectMiddleware(TestCase):
 
     @patch.object(DjCbvInspectMiddleware, 'should_process_request', new=MagicMock(return_value=False))
     @patch.object(DjCbvInspectMiddleware, '_add_djcbv_mixin')
-    def test_middleware_process_view_does_not_run_when_process_request_is_false(self, mock_add_mixin):
+    def test_middleware_process_view_hook_does_not_append_mixin(self, mock_add_mixin):
         """
         Test that the middleware `process_view` hook exits early when `should_process_request`
         is False.
@@ -253,6 +266,7 @@ class TestDjCBVInspectMiddleware(TestCase):
         Even if the middleware exits early in `__call__`, the `get_response` calls which
         still triggers the `process_view` hook, hence the secondary check here.
         """
+
         # Act
         self.middleware.process_view(self.request, MagicMock(), (), {})
 
@@ -262,12 +276,15 @@ class TestDjCBVInspectMiddleware(TestCase):
 
 @override_settings(DEBUG=True)
 class TestMiddlewareWithClient(TestCase):
+    """
+    Client end-to-end request/response tests for the `DjCbvInspectMiddleware` middleware class.
+    """
+
     def test_client_request_for_fbv_returns_early(self):
         """
-        Test the end-to-end request/response for a function-based view.
-
-        Assert that the toolbar is not shown.
+        Test a function-based view to make sure the toolbar is not shown.
         """
+
         # Arrange
         client = Client()
 
@@ -279,10 +296,10 @@ class TestMiddlewareWithClient(TestCase):
 
     def test_client_request_for_cbv_returns_early_when_excluded_with_mixin(self):
         """
-        Test the end-to-end request/response for an excluded class-based view using the mixin.
-
-        Assert that the toolbar is not shown.
+        Test excluding a class-based view using the `DjCbvExcludeMixin` mixin class
+        and asserting that the toolbar is not shown.
         """
+
         # Arrange
         client = Client()
 
@@ -294,11 +311,10 @@ class TestMiddlewareWithClient(TestCase):
 
     def test_client_request_for_cbv_returns_early_when_excluded_with_decorator(self):
         """
-        Test the end-to-end request/response for an excluded class-based view
-        using the method decorator.
-
-        Assert that the toolbar is not shown.
+        Test an excluded class-based view using the `djcbv_exclude` decorator function
+        and asserting that the toolbar is not shown.
         """
+
         # Arrange
         client = Client()
 
@@ -310,11 +326,11 @@ class TestMiddlewareWithClient(TestCase):
 
     def test_client_request_for_cbv_shows_toolbar(self):
         """
-        Test the end-to-end request/response for a class-based view when the toolbar should run.
-
-        Assert that the djCbv markup is in the response content and the
-        middleware cleaned up the mixin class from the original request.
+        Test a class-based view request and assert that:
+            - the djCbv markup is in the response content
+            - the `DjCbvInspectMixin` class has been removed view class
         """
+
         # Arrange
         client = Client()
 

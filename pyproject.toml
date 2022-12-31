@@ -1,6 +1,6 @@
 [tool.coverage.run]
 branch = true
-source = ["django_cbv_inspect"]
+source = ["cbv_inspect"]
 omit = [
     "*/__init__.py",
     "*/apps.py",
@@ -11,6 +11,21 @@ omit = [
 show_missing = true
 precision = 2
 fail_under = 50
+
+
+[tool.black]
+line-length = 100
+
+
+[tool.isort]
+profile = "black"
+known_django = "django"
+known_first_party = ["cbv_inspect", "example", "tests"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+
+[tool.pycln]
+all = true
 
 
 [build-system]

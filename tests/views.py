@@ -1,11 +1,10 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.template import loader
 from django.views.generic import TemplateView, View
 from django.utils.decorators import method_decorator
 
-from django_cbv_inspect.decorators import djcbv_exclude
-from django_cbv_inspect.mixins import DjCbvExcludeMixin
+from cbv_inspect.decorators import djcbv_exclude
+from cbv_inspect.mixins import DjCbvExcludeMixin
 
 
 class RenderHtmlView(TemplateView):
@@ -41,10 +40,9 @@ class ExcludedByDecorator(TemplateView):
 
 def fbv_render(request):
     template_name = "base.html"
-    template = loader.get_template(template_name)
     context = {"title": "FBV Render", "content": "Hello FBV!"}
 
-    return HttpResponse(template.render(context, request))
+    return render(request, template_name, context)
 
 
 class HelloTest(View):

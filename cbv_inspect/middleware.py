@@ -4,22 +4,23 @@ from typing import Callable, Dict, Tuple, Optional, Union
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.urls import resolve
+from django.urls import resolve, ResolverMatch
 
-from django_cbv_inspect.mixins import DjCbvInspectMixin
-from django_cbv_inspect import utils, views
-
-
-logger = logging.getLogger(__name__)
+from cbv_inspect.mixins import DjCbvInspectMixin
+from cbv_inspect import utils, views
 
 
 class DjCbvToolbar:
-    def __init__(self, request):
+    def __init__(self, request: HttpRequest) -> None:
         self.request = request
         self.init_logs()
 
     def init_logs(self) -> None:
-        match = resolve(self.request.path)
+        """
+        Attach metadata to request object.
+        """
+
+        match: ResolverMatch = resolve(self.request.path)
 
         metadata = utils.DjCbvRequestMetadata(
             path=self.request.path,
@@ -34,12 +35,15 @@ class DjCbvToolbar:
 
         self.request._djcbv_inspect_metadata = metadata
 
-    def get_content(self) -> None:
+    def get_content(self) -> str:
+        """
+        Render the djCbv toolbar and return stringified markup.
+        """
         return views.render_djcbv_panel(self.request)
 
 
 class DjCbvInspectMiddleware:
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable) -> None:
         self.get_response = get_response
 
     @staticmethod
@@ -49,8 +53,9 @@ class DjCbvInspectMiddleware:
     @staticmethod
     def _is_response_insertable(response: HttpResponse) -> bool:
         """
-        Determine if djcbv_inspect content can be inserted into a response.
+        Determine if djCbv content can be inserted into a response.
         """
+
         content_type = response.get("Content-Type", "").split(";")[0]
         content_encoding = response.get("Content-Encoding", "")
         has_content = hasattr(response, "content")
@@ -68,8 +73,9 @@ class DjCbvInspectMiddleware:
     @staticmethod
     def _remove_djcbv_mixin(request: HttpRequest) -> None:
         """
-        Remove mixin if its present in cbv view function.
+        Remove mixin if its present in a request's CBV view class.
         """
+
         view_func = resolve(request.path).func
 
         view_func.view_class.__bases__ = tuple(
@@ -79,8 +85,9 @@ class DjCbvInspectMiddleware:
     @staticmethod
     def _add_djcbv_mixin(view_func: Callable) -> None:
         """
-        Add mixin to view function.
+        Insert mixin in a CBV view class.
         """
+
         view_func.view_class.__bases__ = (
             DjCbvInspectMixin,
             *view_func.view_class.__bases__
@@ -88,6 +95,10 @@ class DjCbvInspectMiddleware:
 
     @staticmethod
     def is_view_excluded(request: HttpRequest) -> bool:
+        """
+        Check for `djcbv_exclude` attribute on view function.
+        """
+
         view_func = resolve(request.path).func
 
         if hasattr(view_func, 'djcbv_exclude'):
@@ -95,15 +106,16 @@ class DjCbvInspectMiddleware:
 
         return False
 
-    def should_process_request(self, request):
+    def should_process_request(self, request: HttpRequest) -> bool:
         """
         Determine if the middleware should process the request.
 
-        Will process requests meet the following criteria
+        Will process requests that meet the following criteria:
             1. class-based views
-            2. show_toolbar True
-            3. view not excluded
+            2. show_toolbar is True
+            3. view is not excluded
         """
+
         if not utils.is_cbv_request(request):
             return False
 
@@ -116,6 +128,19 @@ class DjCbvInspectMiddleware:
         return True
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
+        """
+        This is the entrypoint of django-cbv-inspect.
+
+        For incoming requests:
+            1. check if request should be processed
+            2. prep the request object by attaching metadata object to it
+            3. attach the mixin to cbv class before view gets called
+
+        For outgoing responses:
+            1. remove the mixin from cbv class
+            2. render the djCbv toolbar html and attach to response
+        """
+
         if not self.should_process_request(request):
             return self.get_response(request)
 

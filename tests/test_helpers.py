@@ -1,6 +1,4 @@
-from django.views.generic import View
-
-from django_cbv_inspect import mixins
+from cbv_inspect import mixins
 
 
 class AncientFoo:
@@ -11,7 +9,7 @@ class AncientFoo:
         return f"Hello, {name}"
 
     def greet_in_spanish(self):
-        return "Hola, from ancient foo!"
+        return "Hola!"
 
 
 class Foo(AncientFoo):
@@ -32,6 +30,10 @@ class Foo(AncientFoo):
     def get_number():
         return 4
 
+    @property
+    def uppercase_color(self):
+        return self.color.upper()
+
 
 class MixinFoo():
     def some_random_method(self):
@@ -45,7 +47,9 @@ class FuturisticFoo(MixinFoo, Foo):
 
     def excited_spanish_greet(self):
         greeting = super().greet_in_spanish()
-        return greeting.upper()
+        num_greetings = super().get_number()
+
+        return (greeting * num_greetings).upper()
 
     def test(self):
         """ this method will error if called! """

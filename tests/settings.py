@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     # internal apps
     "tests.apps.BooksConfig",
     # external apps
-    "django_cbv_inspect",
+    "cbv_inspect",
 ]
 
 MIDDLEWARE = [
@@ -31,7 +31,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_cbv_inspect.middleware.DjCbvInspectMiddleware",
+    "cbv_inspect.middleware.DjCbvInspectMiddleware",
 ]
 
 ROOT_URLCONF = "tests.urls"
