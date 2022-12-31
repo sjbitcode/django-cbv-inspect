@@ -1,0 +1,71 @@
+[
+  {
+    "model": "books.author",
+    "pk": 1,
+    "fields": {
+      "first_name": "J.K.",
+      "last_name": "Rowling"
+    }
+  },
+  {
+    "model": "books.author",
+    "pk": 2,
+    "fields": {
+      "first_name": "George R.R.",
+      "last_name": "Martin"
+    }
+  },
+  {
+    "model": "books.author",
+    "pk": 3,
+    "fields": {
+      "first_name": "Roald",
+      "last_name": "Dahl"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 1,
+    "fields": {
+        "name": "Harry Potter and the Sorcerer's Stone",
+        "author": 1,
+        "published": "1997-06-27"
+    }
+	},
+  {
+    "model": "books.book",
+    "pk": 2,
+    "fields": {
+        "name": "Harry Potter and the Order of the Phoenix",
+        "author": 1,
+        "published": "2003-06-21"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 3,
+    "fields": {
+        "name": "The Witches",
+        "author": 3,
+        "published": "1983-01-01"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 4,
+    "fields": {
+        "name": "A Game of Thrones",
+        "author": 2,
+        "published": "1996-08-01"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 2,
+    "fields": {
+        "name": "Harry Potter and the Chamber of Secrets",
+        "author": 1,
+        "published": "1998-07-02"
+    }
+  }  
+]
