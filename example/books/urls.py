@@ -12,9 +12,10 @@ urlpatterns = [
     path("delete/<int:pk>/", views.BookDeleteView.as_view(), name="book_delete"),
     path("new/", views.BookCreateView.as_view(), name="book_create"),
     path("authors/new/", views.AuthorCreateView.as_view(), name="author_create"),
-    path("hello/", views.hello_html, name="hello"),
-    path("hello2/", views.hello_html2, name="hello2"),
-    path("hello_cbv/", views.HelloTest.as_view(), name="hello_cbv"),
+
+    # random views
+    path("hello_fbv/", views.hello_fbv, name="hello_fbv"),
+    path("hello_cbv/", views.HelloCBV.as_view(), name="hello_cbv"),
     path("jsontest/", views.jsontest, name="jsontest"),
     path("gotobooks/", views.BookRedirect.as_view(), name="gotobooks"),
 ]

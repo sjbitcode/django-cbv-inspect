@@ -25,74 +25,29 @@ logger = logging.getLogger(__name__)
 
 class FooMixin:
     def test(self):
-        return 'Yo this is a test!'
+        return 'Test from FooMixin'
 
 
-class Coffee:
+class CoffeeMixin:
     def greet(self):
-        return "yo"
+        return "Hello from CoffeeMixin"
 
 
-# @method_decorator(djcbv_exclude, name='dispatch')
-class BookListView(Coffee, FooMixin, ListView):
-    # class BookListView(DjCbvExcludeMixin, Coffee, FooMixin, ListView):
+# @method_decorator(djcbv_exclude, name='dispatch')  # test excluding this view
+class BookListView(CoffeeMixin, FooMixin, ListView):
     model = Book
 
-    # @djcbv_exclude
-    # def dispatch(self, request, *args, **kwargs):
-    #     return super().dispatch(request, *args, **kwargs)
-
     def get_favorite_book(self):
-        # logger.error('Getting favorite book!')
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
         """ a doctstring with super().omgomg() """
         context = super().get_context_data(**kwargs)
-        context["now"] = "the time right now"
-        # logger.error('In context data!')
-        fav_book = self.get_favorite_book()
+        context["fav_book"] = self.get_favorite_book()
 
-        context["fav_book"] = fav_book
+        super(CoffeeMixin, self).test()
 
-        # ctx_object_name = super().get_context_object_name(Book.objects.all())
-        # print(ctx_object_name)
-        x = super(Coffee, self).test()
-        # x = super().greet()
-
-        # b = super().get_favorite_book()
         return context
-
-
-# @djcbv_exclude
-def hello(request):
-    return HttpResponse('yo')
-
-
-class HelloTest(View):
-    def get(self, request, *args, **kwargs):
-        return HttpResponse("hello from a CBV View!")
-
-
-# @djcbv_exclude
-def hello_html(request):
-    books = Book.objects.all()
-    authors = Author.objects.all()
-
-    # from pprint import pformat
-
-    book_str = str(books)
-    author_str = str(authors)
-    return render(request, 'books/hello.html', {})
-
-
-# @djcbv_exclude
-def hello_html2(request):
-    return render(request, 'books/hello.html', {})
-
-
-def jsontest(request):
-    return JsonResponse({'foo': 'bar'})
 
 
 class BookRedirect(RedirectView):
@@ -125,3 +80,16 @@ class AuthorCreateView(CreateView):
     model = Author
     form_class = AuthorForm
     success_url = reverse_lazy("books:books")
+
+
+class HelloCBV(View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse("hello from a CBV View!")
+
+
+def hello_fbv(request):
+    return render(request, 'books/hello.html', {})
+
+
+def jsontest(request):
+    return JsonResponse({'foo': 'bar'})
