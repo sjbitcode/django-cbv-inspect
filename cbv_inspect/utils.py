@@ -25,6 +25,7 @@ class DjCbvRequestMetadata:
 
     This is attached to the HttpRequest object like `request._djcbv_inspect_metadata`.
     """
+
     path: str
     method: str
     view_path: str
@@ -107,16 +108,15 @@ def collect_parent_classes(cls: Type, attr: Literal["__mro__", "__bases__"]) -> 
         if cls is not mixins.DjCbvInspectMixin:
             classes.append(
                 DjCbvClassOrMethodInfo(
-                    ccbv_link=get_ccbv_link(cls),
-                    name=f"{cls.__module__}.{cls.__name__}"
+                    ccbv_link=get_ccbv_link(cls), name=f"{cls.__module__}.{cls.__name__}"
                 )
             )
 
     return classes
 
 
-get_bases = functools.partial(collect_parent_classes, attr='__bases__')
-get_mro = functools.partial(collect_parent_classes, attr='__mro__')
+get_bases = functools.partial(collect_parent_classes, attr="__bases__")
+get_mro = functools.partial(collect_parent_classes, attr="__mro__")
 
 
 def get_ccbv_link(obj: Union[Callable, Type]) -> Optional[str]:
@@ -136,7 +136,9 @@ def get_ccbv_link(obj: Union[Callable, Type]) -> Optional[str]:
 
         if inspect.isroutine(obj):  # function or bound method?
             class_name, method_name = obj.__qualname__.rsplit(".", 1)
-            return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
+            return (
+                f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
+            )
 
         if inspect.isclass(obj):
             return f"https://ccbv.co.uk/projects/Django/{version}/{module}/{obj.__name__}"
@@ -155,7 +157,7 @@ def get_path(obj: Callable) -> str:
 
     # For site-packages paths, display path starting from /<package-name>/
     if index > -1:
-        path = path[index + len(site_pkg_dir) - 1:]
+        path = path[index + len(site_pkg_dir) - 1 :]
 
     return path
 
@@ -206,7 +208,7 @@ def get_callable_source(obj: Callable) -> Type:
         - Given a function, this would return the function itself
     """
     # reference https://stackoverflow.com/a/55767059
-    return vars(inspect.getmodule(obj))[obj.__qualname__.rsplit('.', 1)[0]]
+    return vars(inspect.getmodule(obj))[obj.__qualname__.rsplit(".", 1)[0]]
 
 
 def class_has_method(cls: Type, method: str) -> bool:
@@ -231,9 +233,9 @@ def get_sourcecode(obj: Callable) -> str:
 
     # remove docstring if it exists
     if obj.__doc__:
-        source = source.replace(obj.__doc__, '', 1)
+        source = source.replace(obj.__doc__, "", 1)
 
-    return re.sub(re.compile(r'#.*?\n'), '', source)
+    return re.sub(re.compile(r"#.*?\n"), "", source)
 
 
 def get_super_calls(method: Callable) -> List:
@@ -250,8 +252,12 @@ def get_super_calls(method: Callable) -> List:
 
     super_metadata: List[DjCbvClassOrMethodInfo] = []
     view_instance_cls = method.__self__.__class__
-    mro_classes: List = list(filter(lambda x: x.__name__ != "DjCBVInspectMixin", view_instance_cls.__mro__))
-    method_cls: Type = get_callable_source(method)  # the class that defines this method containing super calls
+    mro_classes: List = list(
+        filter(lambda x: x.__name__ != "DjCBVInspectMixin", view_instance_cls.__mro__)
+    )
+    method_cls: Type = get_callable_source(
+        method
+    )  # the class that defines this method containing super calls
 
     # for each super call in method
     for match in matches:
@@ -259,7 +265,7 @@ def get_super_calls(method: Callable) -> List:
         method_info = {}
 
         # search remaining mro classes, after method_cls
-        for mro_cls in mro_classes[mro_classes.index(method_cls)+1:]:
+        for mro_cls in mro_classes[mro_classes.index(method_cls) + 1 :]:
             if class_has_method(mro_cls, method_name):
                 attr: Callable = getattr(mro_cls, method_name)
 
@@ -273,7 +279,7 @@ def get_super_calls(method: Callable) -> List:
                 method_info = DjCbvClassOrMethodInfo(
                     ccbv_link=get_ccbv_link(attr),
                     name=attr.__qualname__,
-                    signature=str(inspect.signature(attr))
+                    signature=str(inspect.signature(attr)),
                 )
                 break
         super_metadata.append(method_info)
@@ -296,10 +302,10 @@ def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRe
     have the request available on the view class instance.
     """
 
-    if hasattr(instance, 'request'):
+    if hasattr(instance, "request"):
         return instance.request
 
-    if attr.__name__ == 'setup':
+    if attr.__name__ == "setup":
         if isinstance(args[0], HttpRequest):
             return args[0]
 
@@ -322,7 +328,7 @@ def set_log_parents(order: int, request: HttpRequest) -> None:
 
     try:
         current_log = request._djcbv_inspect_metadata.logs[order]
-        prior_log = request._djcbv_inspect_metadata.logs[order-1]
+        prior_log = request._djcbv_inspect_metadata.logs[order - 1]
 
         # is prior log a parent of current log?
         if prior_log.indent < current_log.indent:
@@ -345,7 +351,9 @@ def set_log_parents(order: int, request: HttpRequest) -> None:
                 # if ancestor_log is a parent, copy its parents
                 # plus itself and stop iteration
                 if ancestor_log.is_parent and ancestor_log.indent < current_log.indent:
-                    current_log.parent_list = ancestor_log.parent_list + [f"cbvInspect_{ancestor_log.order}_{ancestor_log.indent}"]
+                    current_log.parent_list = ancestor_log.parent_list + [
+                        f"cbvInspect_{ancestor_log.order}_{ancestor_log.indent}"
+                    ]
                     break
     except KeyError:
         pass

@@ -19,13 +19,12 @@ from .models import Author, Book
 # from cbv_inspect.decorators import djcbv_exclude
 
 
-
 logger = logging.getLogger(__name__)
 
 
 class FooMixin:
     def test(self):
-        return 'Test from FooMixin'
+        return "Test from FooMixin"
 
 
 class CoffeeMixin:
@@ -41,7 +40,7 @@ class BookListView(CoffeeMixin, FooMixin, ListView):
         return "Harry Potter"
 
     def get_context_data(self, **kwargs):
-        """ a doctstring with super().omgomg() """
+        """a doctstring with super().omg()"""
         context = super().get_context_data(**kwargs)
         context["fav_book"] = self.get_favorite_book()
 
@@ -51,7 +50,7 @@ class BookListView(CoffeeMixin, FooMixin, ListView):
 
 
 class BookRedirect(RedirectView):
-    url = reverse_lazy('books:books')
+    url = reverse_lazy("books:books")
 
 
 class BookDetailView(DetailView):
@@ -88,8 +87,8 @@ class HelloCBV(View):
 
 
 def hello_fbv(request):
-    return render(request, 'books/hello.html', {})
+    return render(request, "books/hello.html", {})
 
 
 def jsontest(request):
-    return JsonResponse({'foo': 'bar'})
+    return JsonResponse({"foo": "bar"})

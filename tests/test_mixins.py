@@ -7,26 +7,27 @@ from cbv_inspect.mixins import DjCbvInspectMixin
 from . import views
 
 
-@patch('cbv_inspect.utils.serialize_params')
-@patch('cbv_inspect.utils.get_path')
-@patch('cbv_inspect.utils.get_super_calls')
-@patch('cbv_inspect.utils.get_ccbv_link')
+@patch("cbv_inspect.utils.serialize_params")
+@patch("cbv_inspect.utils.get_path")
+@patch("cbv_inspect.utils.get_super_calls")
+@patch("cbv_inspect.utils.get_ccbv_link")
 class TestDjCBVInspectMixin(TestCase):
     """
     Tests for the `DjCbvInspectMixin` mixin class.
     """
+
     def setUp(self):
-        self.request = RequestFactory().get('/simple_cbv_render')
+        self.request = RequestFactory().get("/simple_cbv_render")
 
         # DjCBVInspectMixin only cares about the logs attr
         self.request._djcbv_inspect_metadata = Mock(logs={})
         self.view_func = views.RenderHtmlView.as_view()
         self.view_func.view_class.__bases__ = (
             DjCbvInspectMixin,
-            *self.view_func.view_class.__bases__
+            *self.view_func.view_class.__bases__,
         )
 
-    @patch('cbv_inspect.utils.get_request')
+    @patch("cbv_inspect.utils.get_request")
     def test_mixin_runs_on_cbv_view(
         self,
         mock_utils_get_request,

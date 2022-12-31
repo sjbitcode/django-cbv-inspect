@@ -83,11 +83,11 @@ class TestCollectParentClasses(unittest.TestCase):
         mro_cls_metadata = []
 
         for mro_cls in mro:
-            mro_cls_metadata.append(DjCbvClassOrMethodInfo(
-                ccbv_link=None,
-                name=f"{mro_cls.__module__}.{mro_cls.__name__}",
-                signature=None
-            ))
+            mro_cls_metadata.append(
+                DjCbvClassOrMethodInfo(
+                    ccbv_link=None, name=f"{mro_cls.__module__}.{mro_cls.__name__}", signature=None
+                )
+            )
 
         # Act
         cls_metadata = collect_parent_classes(test_helpers.FuturisticFoo, "__mro__")
@@ -107,11 +107,13 @@ class TestCollectParentClasses(unittest.TestCase):
         base_cls_metadata = []
 
         for base_cls in bases:
-            base_cls_metadata.append(DjCbvClassOrMethodInfo(
-                ccbv_link=None,
-                name=f"{base_cls.__module__}.{base_cls.__name__}",
-                signature=None
-            ))
+            base_cls_metadata.append(
+                DjCbvClassOrMethodInfo(
+                    ccbv_link=None,
+                    name=f"{base_cls.__module__}.{base_cls.__name__}",
+                    signature=None,
+                )
+            )
 
         # Act
         cls_metadata = collect_parent_classes(test_helpers.FuturisticFoo, "__bases__")
@@ -132,11 +134,13 @@ class TestCollectParentClasses(unittest.TestCase):
 
         for base_cls in bases:
             if base_cls is not DjCbvInspectMixin:
-                base_cls_metadata.append(DjCbvClassOrMethodInfo(
-                    ccbv_link=None,
-                    name=f"{base_cls.__module__}.{base_cls.__name__}",
-                    signature=None
-                ))
+                base_cls_metadata.append(
+                    DjCbvClassOrMethodInfo(
+                        ccbv_link=None,
+                        name=f"{base_cls.__module__}.{base_cls.__name__}",
+                        signature=None,
+                    )
+                )
 
         # Act
         cls_metadata = collect_parent_classes(test_helpers.DjFoo, "__bases__")
@@ -160,7 +164,9 @@ class TestGetCCBVLink(unittest.TestCase):
         # Arrange
         version: str = get_version().rsplit(".", 1)[0]
         module: str = TemplateView.__module__
-        expected_ccbv_url = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{TemplateView.__name__}"
+        expected_ccbv_url = (
+            f"https://ccbv.co.uk/projects/Django/{version}/{module}/{TemplateView.__name__}"
+        )
 
         # Act
         ccbv_url = get_ccbv_link(TemplateView)
@@ -179,7 +185,9 @@ class TestGetCCBVLink(unittest.TestCase):
         version: str = get_version().rsplit(".", 1)[0]
         module: str = TemplateView.__module__
         class_name, method_name = cbv_method.__qualname__.rsplit(".", 1)
-        expected_ccbv_url = f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
+        expected_ccbv_url = (
+            f"https://ccbv.co.uk/projects/Django/{version}/{module}/{class_name}/#{method_name}"
+        )
 
         # Act
         ccbv_url = get_ccbv_link(cbv_method)
@@ -187,7 +195,7 @@ class TestGetCCBVLink(unittest.TestCase):
         # Assert
         self.assertEqual(expected_ccbv_url, ccbv_url)
 
-    @patch.object(inspect, 'isclass', return_value=False)
+    @patch.object(inspect, "isclass", return_value=False)
     def test_ccbv_link_does_not_return_link_for_cbv_nonclass(self, _):
         """
         Test that no ccbv link is generated for a nonclass or nonmethod object.
@@ -532,7 +540,7 @@ class TestGetSuperCalls(unittest.TestCase):
         expected_super_call = DjCbvClassOrMethodInfo(
             ccbv_link=None,
             name=test_helpers.AncientFoo.greet.__qualname__,
-            signature=str(inspect.signature(test_helpers.AncientFoo.greet))
+            signature=str(inspect.signature(test_helpers.AncientFoo.greet)),
         )
 
         # Act
@@ -552,7 +560,7 @@ class TestGetSuperCalls(unittest.TestCase):
         expected_super_call = DjCbvClassOrMethodInfo(
             ccbv_link=None,
             name=test_helpers.AncientFoo.customize_greet.__qualname__,
-            signature=str(inspect.signature(test_helpers.AncientFoo.customize_greet))
+            signature=str(inspect.signature(test_helpers.AncientFoo.customize_greet)),
         )
 
         # Act
@@ -589,12 +597,12 @@ class TestGetSuperCalls(unittest.TestCase):
             DjCbvClassOrMethodInfo(
                 ccbv_link=None,
                 name=test_helpers.AncientFoo.greet_in_spanish.__qualname__,
-                signature=str(inspect.signature(test_helpers.AncientFoo.greet_in_spanish))
+                signature=str(inspect.signature(test_helpers.AncientFoo.greet_in_spanish)),
             ),
             DjCbvClassOrMethodInfo(
                 ccbv_link=None,
                 name=test_helpers.Foo.get_number.__qualname__,
-                signature=str(inspect.signature(test_helpers.Foo.get_number))
+                signature=str(inspect.signature(test_helpers.Foo.get_number)),
             ),
         ]
 
@@ -739,7 +747,7 @@ class TestSetLogParents(unittest.TestCase):
 
         # Arrange
         log_1 = DjCbvLog(order=1, indent=0, is_parent=True)
-        log_2 = DjCbvLog(order=2, indent=1, parent_list=['cbvInspect_1_0'])
+        log_2 = DjCbvLog(order=2, indent=1, parent_list=["cbvInspect_1_0"])
         current_log_order = 3
         current_log = DjCbvLog(order=current_log_order, indent=2)
         self.request._djcbv_inspect_metadata.logs[1] = log_1
@@ -752,7 +760,7 @@ class TestSetLogParents(unittest.TestCase):
         # Assert
         self.assertFalse(current_log.is_parent)
         self.assertTrue(log_2.is_parent)
-        self.assertEqual(current_log.parent_list, ['cbvInspect_1_0', 'cbvInspect_2_1'])
+        self.assertEqual(current_log.parent_list, ["cbvInspect_1_0", "cbvInspect_2_1"])
 
     def test_log_with_ancestor_parent(self):
         """
@@ -766,8 +774,8 @@ class TestSetLogParents(unittest.TestCase):
 
         # Arrange
         log_1 = DjCbvLog(order=1, indent=0, is_parent=True)
-        log_2 = DjCbvLog(order=2, indent=1, is_parent=True, parent_list=['cbvInspect_1_0'])
-        log_3 = DjCbvLog(order=3, indent=2, parent_list=['cbvInspect_1_0', 'cbvInspect_2_1'])
+        log_2 = DjCbvLog(order=2, indent=1, is_parent=True, parent_list=["cbvInspect_1_0"])
+        log_3 = DjCbvLog(order=3, indent=2, parent_list=["cbvInspect_1_0", "cbvInspect_2_1"])
         current_log_order = 4
         current_log = DjCbvLog(order=current_log_order, indent=1)
         self.request._djcbv_inspect_metadata.logs[1] = log_1
@@ -781,4 +789,4 @@ class TestSetLogParents(unittest.TestCase):
         # Assert
         self.assertFalse(current_log.is_parent)
         self.assertFalse(log_3.is_parent)
-        self.assertEqual(current_log.parent_list, ['cbvInspect_1_0'])
+        self.assertEqual(current_log.parent_list, ["cbvInspect_1_0"])

@@ -63,10 +63,7 @@ class DjCbvInspectMiddleware:
         streaming_response = response.streaming
 
         return (
-            has_content
-            and is_html_content_type
-            and not gzipped_encoded
-            and not streaming_response
+            has_content and is_html_content_type and not gzipped_encoded and not streaming_response
         )
 
     @staticmethod
@@ -87,10 +84,7 @@ class DjCbvInspectMiddleware:
         Insert mixin in a CBV view class.
         """
 
-        view_func.view_class.__bases__ = (
-            DjCbvInspectMixin,
-            *view_func.view_class.__bases__
-        )
+        view_func.view_class.__bases__ = (DjCbvInspectMixin, *view_func.view_class.__bases__)
 
     @staticmethod
     def is_view_excluded(request: HttpRequest) -> bool:
@@ -100,7 +94,7 @@ class DjCbvInspectMiddleware:
 
         view_func = resolve(request.path).func
 
-        if hasattr(view_func, 'djcbv_exclude'):
+        if hasattr(view_func, "djcbv_exclude"):
             return True
 
         return False
@@ -165,6 +159,8 @@ class DjCbvInspectMiddleware:
 
         return response
 
-    def process_view(self, request: HttpResponse, view_func: Callable, view_args: Tuple, view_kwargs: Dict) -> None:
+    def process_view(
+        self, request: HttpResponse, view_func: Callable, view_args: Tuple, view_kwargs: Dict
+    ) -> None:
         if self.should_process_request(request):
             self._add_djcbv_mixin(view_func)

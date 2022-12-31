@@ -15,6 +15,7 @@ fail_under = 50
 
 [tool.black]
 line-length = 100
+extend-exclude = '''.*/migrations/.*\.py'''
 
 
 [tool.isort]

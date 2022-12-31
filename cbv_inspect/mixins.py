@@ -8,7 +8,7 @@ from django.utils.functional import cached_property
 
 from cbv_inspect import decorators, utils
 
-logger = logging.getLogger('cbv_inspect.mixins')
+logger = logging.getLogger("cbv_inspect.mixins")
 
 
 class DjCbvInspectMixin:
@@ -31,17 +31,13 @@ class DjCbvInspectMixin:
     def __getattribute__(self, name: str) -> Any:
         attr = super().__getattribute__(name)
 
-        if (
-            callable(attr)
-            and name != "__class__"
-            and name in self.allowed_callables
-        ):
+        if callable(attr) and name != "__class__" and name in self.allowed_callables:
             tab = "\t"
             log = utils.DjCbvLog()
 
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
-                logger.debug("%s (%s) %s", tab*self.indent, self.order, attr.__qualname__)
+                logger.debug("%s (%s) %s", tab * self.indent, self.order, attr.__qualname__)
 
                 log.order = self.order
                 log.indent = self.indent
@@ -60,14 +56,21 @@ class DjCbvInspectMixin:
                 log.args = utils.serialize_params(args)
                 log.kwargs = utils.serialize_params(kwargs)
                 log.return_value = utils.serialize_params(ret)
-                log.signature = inspect.formatargspec(*inspect.getfullargspec(attr))  # includes 'self' argument
+                log.signature = inspect.formatargspec(
+                    *inspect.getfullargspec(attr)
+                )  # includes 'self' argument
                 log.path = utils.get_path(attr)
                 log.super_calls = utils.get_super_calls(attr)
                 log.ccbv_link = utils.get_ccbv_link(attr)
 
                 self.indent -= 1
 
-                logger.debug("%s (%s) result: %s", tab*self.indent, log.order, log.return_value.replace('\n', ''))
+                logger.debug(
+                    "%s (%s) result: %s",
+                    tab * self.indent,
+                    log.order,
+                    log.return_value.replace("\n", ""),
+                )
 
                 return ret
 

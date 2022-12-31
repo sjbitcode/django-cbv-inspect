@@ -35,7 +35,7 @@ class Foo(AncientFoo):
         return self.color.upper()
 
 
-class MixinFoo():
+class MixinFoo:
     def some_random_method(self):
         return 1
 
@@ -52,7 +52,7 @@ class FuturisticFoo(MixinFoo, Foo):
         return (greeting * num_greetings).upper()
 
     def test(self):
-        """ this method will error if called! """
+        """this method will error if called!"""
         super().some_nonexistent_method()
 
 
@@ -75,6 +75,6 @@ def sample_func2():
     return 1
 
 
-class AwesomeMixin():
+class AwesomeMixin:
     def do_some_django_thing(self, *args, **kwargs):
         pass

@@ -27,7 +27,7 @@ class ExcludedByMixin(DjCbvExcludeMixin, TemplateView):
         return context
 
 
-@method_decorator(djcbv_exclude, name='dispatch')
+@method_decorator(djcbv_exclude, name="dispatch")
 class ExcludedByDecorator(TemplateView):
     template_name = "base.html"
 

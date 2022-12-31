@@ -17,7 +17,7 @@ def djcbv_exclude(view_func: Callable) -> Callable:
     # attributes set by decorators on the dispatch function...this is how
     # our attribute gets exposed to the middleware.
     if not isinstance(view_func, partial):
-        setattr(view_func, 'djcbv_exclude', True)
+        setattr(view_func, "djcbv_exclude", True)
 
     @wraps(view_func)
     def _wrapped_view(*args, **kwargs):

@@ -3,7 +3,7 @@ from django.urls import include, path
 
 from . import views
 
-app_name = 'books'
+app_name = "books"
 
 urlpatterns = [
     path("", views.BookListView.as_view(), name="books"),
@@ -12,7 +12,6 @@ urlpatterns = [
     path("delete/<int:pk>/", views.BookDeleteView.as_view(), name="book_delete"),
     path("new/", views.BookCreateView.as_view(), name="book_create"),
     path("authors/new/", views.AuthorCreateView.as_view(), name="author_create"),
-
     # random views
     path("hello_fbv/", views.hello_fbv, name="hello_fbv"),
     path("hello_cbv/", views.HelloCBV.as_view(), name="hello_cbv"),
@@ -21,6 +20,7 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    if 'debug_toolbar' in settings.INSTALLED_APPS:
+    if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
-        urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+
+        urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
