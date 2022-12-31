@@ -124,7 +124,8 @@ def get_ccbv_link(obj: Union[Callable, Type]) -> Optional[str]:
     Construct the ccbv.co.uk link for a class or method.
     ex: https://ccbv.co.uk/projects/Django/2.0/django.views.generic.base/View/#_allowed_methods
 
-    Note: older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard, but we're skipping those.
+    Note: older versions of Django (1.4 - 1.7) have views from django.contrib.formtools.wizard,
+    but we're skipping those.
     """
 
     module: str = obj.__module__
@@ -193,7 +194,7 @@ def mask_queryset(s: str) -> str:
     Substitute a QuerySet's string representation with a masked value.
     """
 
-    pattern = re.compile("<QuerySet \[.*?\]>")
+    pattern = re.compile(r"<QuerySet \[.*?\]>")
     mask = "<<queryset>>"
     return re.sub(pattern, mask, s)
 
@@ -273,7 +274,8 @@ def get_super_calls(method: Callable) -> List:
                 # ex:
                 #   mro_cls = ListView, method_name = "get_context_data"
                 #   hasattr(ListView, "get_context_data") is True, but
-                #   getattr(ListView, "get_context_data") is <function MultipleObjectMixin.get_context_data ...>
+                #   getattr(ListView, "get_context_data") is
+                #   <function MultipleObjectMixin.get_context_data ...>
                 #   because the method is defined or overriden on MultipleObjectMixin.
                 # We can return this metadata without iterating further through mro classes
                 method_info = DjCbvClassOrMethodInfo(

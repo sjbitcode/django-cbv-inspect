@@ -552,7 +552,8 @@ class TestGetSuperCalls(unittest.TestCase):
 
     def test_super_call_that_resolves_to_ancestor(self):
         """
-        Test a class method with a super call that resolves to one of its mro classes (not a direct base class).
+        Test a class method with a super call that resolves to one of its mro classes
+        (not a direct base class).
         """
 
         # Arrange

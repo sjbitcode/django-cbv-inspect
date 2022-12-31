@@ -3,4 +3,4 @@
 [flake8]
 max-line-length = 100
 ignore = E203  # E203 is for black https://github.com/PyCQA/pycodestyle/issues/373
-extend-exclude = .venv, venv, .misc
+extend-exclude = .venv, venv, .misc, migrations

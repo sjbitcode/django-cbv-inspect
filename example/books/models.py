@@ -32,7 +32,8 @@ class Author(models.Model):
 
 
 # Create a digit with of length x
-d = lambda x: "".join(random.choice(string.digits) for _ in range(x))
+def d(x: int) -> str:
+    return "".join(random.choice(string.digits) for _ in range(x))
 
 
 def generate_isbn(sender, instance, *args, **kwargs):
