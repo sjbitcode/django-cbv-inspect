@@ -256,9 +256,10 @@ def get_super_calls(method: Callable) -> List:
     mro_classes: List = list(
         filter(lambda x: x.__name__ != "DjCBVInspectMixin", view_instance_cls.__mro__)
     )
+    # the class that defines this method containing super calls
     method_cls: Type = get_callable_source(
         method
-    )  # the class that defines this method containing super calls
+    )
 
     # for each super call in method
     for match in matches:
@@ -351,7 +352,7 @@ def set_log_parents(order: int, request: HttpRequest) -> None:
                 ancestor_log = request._djcbv_inspect_metadata.logs[key]
 
                 # if ancestor_log is a parent, copy its parents
-                # plus itself and stop iteration
+                # plus itself as current log's parents and stop iteration
                 if ancestor_log.is_parent and ancestor_log.indent < current_log.indent:
                     current_log.parent_list = ancestor_log.parent_list + [
                         f"cbvInspect_{ancestor_log.order}_{ancestor_log.indent}"
