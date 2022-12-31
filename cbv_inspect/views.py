@@ -13,4 +13,4 @@ def render_djcbv_panel(request) -> SafeString:
     # because we want to keep each log as a dataclass object
     ctx_data = dict((field.name, getattr(metadata, field.name)) for field in fields(metadata))
 
-    return render_to_string("django_cbv_inspect/cbv_logs2.html", ctx_data)
+    return render_to_string("cbv_inspect/toolbar.html", ctx_data)
