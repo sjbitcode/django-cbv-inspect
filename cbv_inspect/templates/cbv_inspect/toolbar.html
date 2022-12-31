@@ -24,7 +24,7 @@
       <table>
         <thead>
           <tr>
-            <th>View</th>
+            <th>View class</th>
             <th>Base classes</th>
             <th>HTTP method</th>
             <th>Arguments</th>
@@ -177,10 +177,10 @@
                 <td>
                   {% if cls_dict.ccbv_link %}
                       <a href="{{ cls_dict.ccbv_link }}" target="_blank">
-                        <span class="djcbv-method">{{ cls_dict.name }}</span>   
+                        <span class="djcbv-method {% if forloop.first %}bold{% endif %}">{{ cls_dict.name }}</span>
                       </a>
                   {% else %}
-                      <span class="djcbv-method">{{ cls_dict.name }}</span>
+                      <span class="djcbv-method {% if forloop.first %}bold{% endif %}">{{ cls_dict.name }}</span>
                   {% endif %}
                 </td>
               </tr>
@@ -402,6 +402,10 @@
 
   #djCbv .cbvLogsButton {
     cursor: pointer;
+  }
+
+  .bold {
+    font-weight: 700;
   }
 </style>
 
