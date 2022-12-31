@@ -3,7 +3,6 @@
 import os
 import sys
 
-
 # allow app import outside of parent directory
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 

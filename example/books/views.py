@@ -1,21 +1,23 @@
 import logging
+
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-
-from django.views.generic import (
-    ListView,
-    DetailView,
-    CreateView,
-    UpdateView,
-    DeleteView,
-    RedirectView,
-    View
-)
 from django.urls import reverse_lazy
-# from cbv_inspect.decorators import djcbv_exclude
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    RedirectView,
+    UpdateView,
+    View,
+)
 
 from .forms import AuthorForm, BookForm
 from .models import Author, Book
+
+# from cbv_inspect.decorators import djcbv_exclude
+
 
 
 logger = logging.getLogger(__name__)

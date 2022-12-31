@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock, create_autospec
+from unittest.mock import MagicMock, create_autospec, patch
 
 from django.http import HttpResponse
 from django.test import Client, RequestFactory, TestCase

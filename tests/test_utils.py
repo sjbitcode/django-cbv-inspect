@@ -1,35 +1,35 @@
-from collections import namedtuple
 import inspect
 import unittest
-from unittest.mock import patch, Mock, MagicMock, create_autospec
+from collections import namedtuple
+from unittest.mock import MagicMock, Mock, create_autospec, patch
 
 from django import get_version
 from django.test import RequestFactory, TestCase
 from django.views.generic import TemplateView
 
+from cbv_inspect.mixins import DjCbvInspectMixin
 from cbv_inspect.utils import (
     DjCbvClassOrMethodInfo,
     DjCbvException,
     DjCbvLog,
-    is_cbv_view,
+    class_has_method,
     collect_parent_classes,
     get_bases,
-    get_mro,
-    get_ccbv_link,
-    get_path,
-    serialize_params,
-    mask_request,
-    mask_queryset,
     get_callable_source,
-    class_has_method,
+    get_ccbv_link,
+    get_mro,
+    get_path,
+    get_request,
     get_sourcecode,
     get_super_calls,
-    get_request,
+    is_cbv_view,
+    mask_queryset,
+    mask_request,
+    serialize_params,
     set_log_parents,
 )
-from cbv_inspect.mixins import DjCbvInspectMixin
-from . import test_helpers, views, models
 
+from . import models, test_helpers, views
 
 SubTestArgs = namedtuple("SubTestArgs", "passed expected")
 

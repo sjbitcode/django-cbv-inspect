@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import functools
 import inspect
-from pprint import pformat
 import re
-from typing import Any, Callable, Dict, List, Literal, Tuple, Type, Union, Optional
+from dataclasses import dataclass, field
+from pprint import pformat
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 
 from django import get_version
 from django.http import HttpRequest

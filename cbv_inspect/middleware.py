@@ -3,10 +3,10 @@ from typing import Callable, Dict, Tuple
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.urls import resolve, ResolverMatch
+from django.urls import ResolverMatch, resolve
 
-from cbv_inspect.mixins import DjCbvInspectMixin
 from cbv_inspect import utils, views
+from cbv_inspect.mixins import DjCbvInspectMixin
 
 
 class DjCbvToolbar:

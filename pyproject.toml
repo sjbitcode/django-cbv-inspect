@@ -22,6 +22,7 @@ profile = "black"
 known_django = "django"
 known_first_party = ["cbv_inspect", "example", "tests"]
 sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip_glob = ["*/migrations/*"]
 
 
 [tool.pycln]

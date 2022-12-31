@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.views.generic import TemplateView, View
 from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView, View
 
 from cbv_inspect.decorators import djcbv_exclude
 from cbv_inspect.mixins import DjCbvExcludeMixin

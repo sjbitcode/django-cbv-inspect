@@ -1,7 +1,7 @@
 from dataclasses import fields
 
-from django.utils.safestring import SafeString
 from django.template.loader import render_to_string
+from django.utils.safestring import SafeString
 
 from cbv_inspect.utils import DjCbvRequestMetadata
 

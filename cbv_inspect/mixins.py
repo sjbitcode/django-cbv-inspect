@@ -6,8 +6,7 @@ from typing import Any, List
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 
-from cbv_inspect import utils, decorators
-
+from cbv_inspect import decorators, utils
 
 logger = logging.getLogger('cbv_inspect.mixins')
 
