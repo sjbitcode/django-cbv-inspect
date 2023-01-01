@@ -5,7 +5,7 @@ import inspect
 import re
 from dataclasses import dataclass, field
 from pprint import pformat
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from django import get_version
 from django.http import HttpRequest
@@ -97,9 +97,11 @@ def is_cbv_request(request: HttpRequest) -> bool:
     return is_cbv_view(view_func)
 
 
-def collect_parent_classes(cls: Type, attr: Literal["__mro__", "__bases__"]) -> List:
+def collect_parent_classes(cls: Type, attr: str) -> List:
     """
     Return metadata for all mro or base classes except for DjCBVInspectMixin.
+
+    Note: attr would always be one of these strings: ["__mro__", "__bases__"].
     """
 
     classes = []
@@ -181,7 +183,12 @@ def serialize_params(obj: Any) -> str:
 
 def get_signature(obj: Callable) -> str:
     """
-    Return the signature of a callable.
+    Return the signature of a callable using inspect.Signature.
+
+    We want the "self" argument in the signature which is only
+    returned when we pass an unbound method to inspect.Signature.
+
+    Bound methods are passed in, so we need the unbound function.
     """
 
     func = obj
