@@ -1,3 +1,7 @@
+"""
+Some random classes and functions used for unittests!
+"""
+
 from cbv_inspect import mixins
 
 
