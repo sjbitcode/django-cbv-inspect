@@ -1,9 +1,17 @@
-# Django CBV Inspect
-A tool to inspect all class-based views within your Django project.
+<h1 align="center">
+    django-cbv-inspect
+</h1>
 
-![My Image](example/cbv-inspect.gif)
+<p align="center">A tool to inspect all class-based views within your Django project 🔎 ✨ </p>
 
-## Installation
+<p align="center">
+    <br>
+    <img src="example/cbv-inspect.gif" alt="demo gif"/>
+</p>
+
+
+---
+## 📦 Installation
 1. Install with pip
 ```
 pip install django-cbv-inspect
@@ -27,13 +35,16 @@ MIDDLEWARE = [
 ]
 ```
 
-4. **Prerequisite:** In your `TEMPLATES` settings within your Django settings module, make sure
+4. **Prerequisites**
+    
+    In your `TEMPLATES` settings within your Django settings module, make sure
    1. the `BACKEND` setting is `""django.template.backends.django.DjangoTemplates""`
    2. the `APP_DIRS` setting is `True`
 
+---
 
-## Usage
-When all installation steps are done, then any html response rendered by a class-based view should display the `django-cbv-inspect` toolbar on the page.
+## 🛞 Usage
+When all installation steps are done, any html response rendered by a class-based view should display the `django-cbv-inspect` toolbar on the page.
 
 By default, all class-based views will be processed by the middleware. If you wish to exclude views, there are two options:
 
@@ -50,7 +61,6 @@ class MyCoolView(DjCbvExcludeMixin, View):
 ### Exclude via decorator
 ```python
 from django.utils.decorators import method_decorator
-
 from cbv_inspect.decorators import djcbv_exclude
 
 
@@ -59,15 +69,17 @@ class MyCoolView(View):
     pass
 ```
 
-## Test locally
-You can clone and run the `example` project for local development. 
+---
 
-From the root of the repo, run the following Make command to setup the `example` project:
+## 🧪 Run locally
+You can run the `example` project locally to test things out!
+
+Clone the project and from the root of the repo, run the following Make command to setup the `example` project:
 ```
 make run-example
 ```
 
-To run unittests with coverage, use the following Make command
+To run unittests with coverage, run
 ```
 make coverage
 ```
