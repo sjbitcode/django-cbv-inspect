@@ -179,6 +179,21 @@ def serialize_params(obj: Any) -> str:
     return formatted
 
 
+def get_signature(obj: Callable) -> str:
+    """
+    Return the signature of a callable.
+    """
+
+    func = obj
+
+    # if obj is a bound method, get the function obj
+    if hasattr(obj, "__func__"):
+        func = obj.__func__
+
+    sig = inspect.signature(func)
+    return str(sig)
+
+
 def mask_request(s: str) -> str:
     """
     Subsitute an HttpRequests's string representation with a masked value.

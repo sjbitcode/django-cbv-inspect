@@ -20,6 +20,7 @@ from cbv_inspect.utils import (
     get_mro,
     get_path,
     get_request,
+    get_signature,
     get_sourcecode,
     get_super_calls,
     is_cbv_view,
@@ -354,6 +355,40 @@ class TestMaskQueryset(TestCase):
             with self.subTest(arg):
                 masked = mask_queryset(arg.passed)
                 self.assertEqual(arg.expected, masked)
+
+
+class TestGetSignature(unittest.TestCase):
+    """
+    Tests for the `get_signature` util function.
+    """
+
+    def test_signature_for_bound_method(self):
+        """
+        Test that the signature returned contains "self" for bound methods.
+        """
+        # Arrange
+        m = test_helpers.FuturisticFoo().customize_greet
+
+        # Act
+        sig = get_signature(m)
+
+        # Assert
+        self.assertEqual(str(inspect.signature(m)), "(name)")
+        self.assertEqual(sig, "(self, name)")
+
+    def test_signature_for_unbound_method(self):
+        """
+        Test that the signature returned is expected for unbound methods.
+        """
+        # Arrange
+        f = test_helpers.FuturisticFoo.customize_greet
+
+        # Act
+        sig = get_signature(f)
+
+        # Assert
+        self.assertEqual(str(inspect.signature(f)), "(self, name)")
+        self.assertEqual(sig, "(self, name)")
 
 
 class TestGetCallableSource(unittest.TestCase):
