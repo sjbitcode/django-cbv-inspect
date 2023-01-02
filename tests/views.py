@@ -10,6 +10,13 @@ from cbv_inspect.mixins import DjCbvExcludeMixin
 class RenderHtmlView(TemplateView):
     template_name = "base.html"
 
+    def __init__(self, *args, **kwargs):
+        self.greeting = self.get_greeting()
+
+    @staticmethod
+    def get_greeting():
+        return "hello!"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = "Render Html View"

@@ -4,6 +4,7 @@ import functools
 import inspect
 import re
 from dataclasses import dataclass, field
+import logging
 from pprint import pformat
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -12,6 +13,8 @@ from django.http import HttpRequest
 from django.urls import resolve
 
 from cbv_inspect import mixins
+
+logger = logging.getLogger("cbv_inspect.utils")
 
 
 class DjCbvException(Exception):
@@ -314,15 +317,16 @@ def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRe
     """
     Attempt to get an HttpRequest object from one of two places:
         1. a view class instance
-        2. a view class bound method
+        2. a view class `setup` bound method
 
-    The main reason is because View.setup is the first CBV method that runs and
-    sets the request object on the CBV instance, so we can't check `self.request`
-    during the setup method!
+    View.setup is usually the first CBV method that runs and sets the
+    request object on `self` (view instance), so we cannot access `self.request`
+    before the setup method runs. Instead, grab it from its arguments.
 
-    The DjCBVInspectMixin needs access to the request object before View.setup
-    runs so it attempts to grab it from arguments. All following view methods will
-    have the request available on the view class instance.
+    All following view methods will have the request available on the view class instance.
+
+    Note: With custom CBVs, its possible that custom methods might run first
+    even before `setup`. In that case, return None.
     """
 
     if hasattr(instance, "request"):
@@ -331,8 +335,10 @@ def get_request(instance: object, attr: Callable, *args: Any) -> Optional[HttpRe
     if attr.__name__ == "setup":
         if isinstance(args[0], HttpRequest):
             return args[0]
+        else:
+            raise DjCbvException("Request object could not be setup method!")
 
-    raise DjCbvException("Request object could not be found!")
+    logger.debug("Request object could not be found on %s.%s", instance, attr)
 
 
 def set_log_parents(order: int, request: HttpRequest) -> None:

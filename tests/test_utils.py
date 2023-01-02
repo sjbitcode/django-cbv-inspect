@@ -707,9 +707,9 @@ class TestGetRequest(unittest.TestCase):
         # Assert
         self.assertEqual(request, returned_request)
 
-    def test_get_request_raises_exception_if_request_not_found(self):
+    def test_get_request_returns_none_if_request_not_found(self):
         """
-        Test that an exception is raised if the request cannot be found
+        Test that None is returned if the request cannot be found
         on the view instance or view method.
         """
 
@@ -718,9 +718,11 @@ class TestGetRequest(unittest.TestCase):
         cbv_method = MagicMock()
         cbv_method.__name__ = "some_method"
 
-        # Act/Assert
-        with self.assertRaises(Exception):
-            get_request(cbv_instance, cbv_method)
+        # Act
+        returned_request = get_request(cbv_instance, cbv_method)
+
+        # Assert
+        self.assertIsNone(returned_request)
 
 
 class TestSetLogParents(unittest.TestCase):

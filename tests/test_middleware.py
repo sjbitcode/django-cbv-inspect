@@ -367,5 +367,6 @@ class TestMiddlewareWithClient(TestCase):
 
         # Assert
         self.assertTrue('id="djCbv"' in response.content.decode(response.charset))
+        self.assertFalse('get_greeting' in response.content.decode(response.charset))
         bases = resolve(response._request.path).func.view_class.__bases__
         self.assertTrue(DjCbvInspectMixin not in bases)

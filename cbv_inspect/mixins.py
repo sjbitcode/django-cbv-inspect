@@ -43,6 +43,10 @@ class DjCbvInspectMixin:
                 log.indent = self.indent
 
                 request = utils.get_request(self, attr, *args)
+                # if request not found, return attr lookup result
+                if request is None:
+                    return attr(*args, **kwargs)
+
                 request._djcbv_inspect_metadata.logs[log.order] = log
                 utils.set_log_parents(self.order, request)
 
