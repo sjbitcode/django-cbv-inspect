@@ -2,7 +2,19 @@
     django-cbv-inspect
 </h1>
 
-<p align="center">A tool to inspect all class-based views within your Django project 🔎 ✨ </p>
+<div align="center">
+
+<a href="https://github.com/sjbitcode/django-cbv-inspect/actions/workflows/test.yml">
+    <img src="https://github.com/sjbitcode/django-cbv-inspect/actions/workflows/test.yml/badge.svg?branch=master&event=push" alt="Test">
+</a>
+    <a href="https://codecov.io/gh/sjbitcode/django-cbv-inspect">
+        <img src="https://codecov.io/gh/sjbitcode/django-cbv-inspect/branch/main/graph/badge.svg?token=wAjvQLGtpd" alt="codecov">
+    </a>
+</div>
+<br>
+<p align="center">
+    A tool to inspect all class-based views within your Django project 🔎 ✨
+</p>
 
 <p align="center">
     <br>
