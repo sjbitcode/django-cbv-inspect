@@ -12,17 +12,22 @@
     </a>
 </div>
 <br>
-<p align="center">
-    A tool to inspect all class-based views within your Django project 🔎 ✨
-</p>
+<div align="center">
+    <p>A Django app to help inspect all class-based views within your Django project 🔎 ✨ </p>
+    Inspired by django-debug-toolbar ❤️
+</div>
 
 <p align="center">
     <br>
     <img src="https://user-images.githubusercontent.com/6550256/210189547-b173d5a6-d69f-482e-b85b-5be31098610c.gif" alt="django-cbv-inspect demo"/>
 </p>
 
+<br>
 
 ---
+
+<br>
+
 ## 📦 Installation
 1. Install with pip
 ```
@@ -53,7 +58,11 @@ MIDDLEWARE = [
    1. the `BACKEND` setting is `""django.template.backends.django.DjangoTemplates""`
    2. the `APP_DIRS` setting is `True`
 
+<br>
+
 ---
+
+<br>
 
 ## 🛞 Usage
 When all installation steps are done, any html response rendered by a class-based view should display the `django-cbv-inspect` toolbar on the page.
@@ -81,7 +90,11 @@ class MyCoolView(View):
     pass
 ```
 
+<br>
+
 ---
+
+<br>
 
 ## 🧪 Run locally
 You can run the `example` project locally to test things out!
@@ -95,3 +108,62 @@ To run unittests with coverage, run
 ```
 make coverage
 ```
+
+<br>
+
+---
+
+<br>
+
+## ⚡️ Features
+
+The `django-cbv-inspect` toolbar has three main sections:
+
+1. View information
+2. CBV method call chain
+3. MRO classes
+
+<br>
+
+### View information
+
+This section shows high level information about the class-based view, request, and url.
+
+<br>
+
+### CBV method call chain
+
+This is the main section that shows all methods that were excuted for the current class-based view:
+
+It shows:
+- method name and signature
+- [Classy Class-Based Views (ccbv.co.uk)](https://ccbv.co.uk/) links
+- method arguments and return value
+- all resolved `super()` calls defined in the method
+- module location
+
+
+<br>
+
+### MRO classes
+This section lists all MRO classes of the current class-based view class. 
+
+This can come in handy especially with the prior section when mapping the execution of a class-based view.
+
+<br>
+
+---
+
+<br>
+
+## ❓ Why did I build this?
+
+Django class-based views are hard to grasp especially when you're new to Django.
+
+Fortunately for us, tools like [django-debug-toolbar](https://github.com/jazzband/django-debug-toolbar) and [ccbv.co.uk](https://ccbv.co.uk/) are super helpful in providing extra context for debugging.
+
+My goal for this app was to take what goes on under the hood in a class-based view and display it in an easy to use interface, just like what django-debug-toolbar does.
+
+Hopefully this can help debug your class-based views!
+
+Happy coding! ✨
