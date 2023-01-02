@@ -6,7 +6,7 @@
 
 <p align="center">
     <br>
-    <img src="example/cbv-inspect.gif" alt="demo gif"/>
+    <img src="https://user-images.githubusercontent.com/6550256/210189547-b173d5a6-d69f-482e-b85b-5be31098610c.gif" alt="django-cbv-inspect demo"/>
 </p>
 
 
