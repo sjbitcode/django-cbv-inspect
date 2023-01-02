@@ -200,14 +200,16 @@
     display: none !important;
   }
 
-  #djCbv, #djCbv a, #djCbv ul, #djCbv li {
+  #djCbv, #djCbv a, #djCbv ul, #djCbv li, #djCbv h4, #djCbv h1, #djCbv table, #djCbv tbody, #djCbv thead, #djCbv tfoot, #djCbv tr, #djCbv th, #djCbv td, #djCbv div, #djCbv span,
+  #djCbv #djCbvShowPanelButton
+  {
     margin: 0;
     padding: 0;
-    line-height: 1.5;
+    line-height: 1.5 !important;
     color: #4a4a4a;
     font-size: 14px;
     font-weight: 400;
-    font-family: sans-serif;
+    font-family: sans-serif !important;
     text-decoration: none;
     list-style: none;
     text-align: left;
@@ -215,7 +217,7 @@
     vertical-align: top;
   }
 
-  #djCbv a {
+  #djCbv a, #djCbv a > span {
     color: #485fc7;
     cursor: pointer;
   }
@@ -251,19 +253,24 @@
     border: 5px solid #7dd3fc;
     border-bottom-width: 0;
     color: #fff;
-    font-size: 22px;
+    font-size: 22px !important;
     font-weight: bold;
     background-color: #282828;
     opacity: 0.5;
     display: inline-flex;
     align-items: baseline;
   }
-  
-  #djCbv #djCbvShowPanelButtonD, #djCbv #djCbvShowPanelButtonJ {
+
+  #djCbvShowPanelButton > span {
     color: #7dd3fc;
+    font-weight: bold;
   }
 
-  #djCbv #djCbvShowPanelButtonJ {
+  #djCbvShowPanelButton > span#djCbvShowPanelButtonD {
+    font-size: 22px;
+  }
+
+  #djCbvShowPanelButton > #djCbvShowPanelButtonJ {
     font-size: 16px;
   }
 
@@ -404,7 +411,7 @@
     cursor: pointer;
   }
 
-  .bold {
+  #djCbv .bold {
     font-weight: 700;
   }
 </style>
