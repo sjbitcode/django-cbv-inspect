@@ -51,7 +51,7 @@ jobs:
         run: flake8 .
 
       - name: Run tests
-        run: coverage run -m django test && coverage report
+        run: coverage run -m django test && coverage report && coverage xml
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
