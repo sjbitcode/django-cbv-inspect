@@ -1,0 +1,499 @@
+<div id="djCbv">
+
+  <!-- djCbv handle -->
+  <div id="djCbvHandle">
+    <div id="djCbvShowPanelButton">
+      <span id="djCbvShowPanelButtonD">D</span>
+      <span id="djCbvShowPanelButtonJ">J</span>
+      CBV
+    </div>
+  </div>
+
+  <!-- djCbv panel -->
+  <div class="djcbv-panel djcbv-hidden">
+
+    <!-- djCbv panel title -->
+    <div class="djcbv-panel-title">
+      <h1>CBV inspect for <code>{{ method }} {{ path }}</code></h1>
+      <button id="djCbvExitPanel" class="cbvLogsButton">x</button>
+    </div>
+
+    <!-- djCbv panel content -->
+    <div class="djcbv-panel-content">
+      <h4>View information</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>View class</th>
+            <th>Base classes</th>
+            <th>HTTP method</th>
+            <th>Arguments</th>
+            <th>Keyword arguments</th>
+            <th>Path</th>
+            <th>URL name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ view_path }}</td>
+            <td>
+              {% if base_classes %}
+                  {% for cls_dict in base_classes %}
+                    <div>
+                      {% if cls_dict.ccbv_link %}
+                      <a href="{{ cls_dict.ccbv_link }}" target="_blank">
+                        {{ cls_dict.name }}
+                      </a>
+                      {% else %}
+                        {{ cls_dict.name }}
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+              {% endif %}
+            </td>
+            <td><code>{{ method|pprint }}</code></td>
+            <td><code>{{ args|pprint }}</code></td>
+            <td><code>{{ kwargs|pprint }}</code></td>
+            <td><code>{{ path|pprint }}</code></td>
+            <td><code>{{ url_name }}</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      {% if logs %}
+        <h4>CBV method call chain</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>CBV method</th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="arguments">-</button>
+                Arguments
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="keyword-arguments">-</button>
+                Keyword arguments
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="return-value">-</button>
+                Return value
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="super-calls">-</button>
+                Super calls
+              </th>
+              <th>
+                <button type="button" class="cbvColCollapse cbvLogsButton" data-cbv-col="file-path">-</button>
+                File path
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for key, val in logs.items %}
+              <tr class="cbvLogEntry {{ val.parents }}" id="cbvInspect_{{val.order}}_{{val.indent}}" data-cbv-order="{{ val.order }}" data-cbv-tab-index="{{val.indent}}" >
+                <td>
+                  <div style="padding-left: {{val.padding}}px;">
+                    {% if val.is_parent %}
+                      <button type="button" class="cbvParentToggleButton cbvLogsButton">-</button>
+                    {% endif %}
+                    {% if val.ccbv_link %}
+                      <a href="{{ val.ccbv_link }}" target="_blank">
+                        <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>   
+                      </a>
+                    {% else %}
+                      <span class="djcbv-method">{{ val.name }}</span><span class="djcbv-signature">{{ val.signature }}</span>
+                    {% endif %}
+                  </div>
+                </td>
+                
+                <td class="djcbv-show-arguments" data-cbv-col="arguments">
+                  <code>{{ val.args }}</code>
+                </td>
+
+                <td class="djcbv-show-arguments" data-cbv-col="keyword-arguments">
+                  <code>{{ val.kwargs }}</code>
+                </td>
+        
+                <td class="djcbv-show-arguments" data-cbv-col="return-value">
+                  <code>{{ val.return_value }}</code>
+                </td>
+
+                <td class="djcbv-show-arguments" data-cbv-col="super-calls">
+                  {% if val.super_calls %}
+                    {% if val.super_calls|length > 1 %}
+                      <ul>
+                      {% for call in val.super_calls %}
+                        <li>
+                        {% if call.ccbv_link %}
+                          <a href="{{ call.ccbv_link }}" target="_blank">
+                            <span class="djcbv-method">{{ call.name }}</span><span class="djcbv-signature">{{ call.signature }}</span>
+                          </a>
+                        {% else %}
+                        <span class="djcbv-method">{{ call.name }}</span><span class="djcbv-signature">{{ call.signature }}</span>
+                        {% endif %}
+                        </li>
+                      {% endfor %}
+                      </ul>
+
+                    {% else %}
+                      {% if val.super_calls.0.ccbv_link %}
+                        <a href="{{ val.super_calls.0.ccbv_link }}" target="_blank">
+                          <span class="djcbv-method">{{ val.super_calls.0.name }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                        </a>
+                      {% else %}
+                        <span class="djcbv-method">{{ val.super_calls.0.name }}</span><span class="djcbv-signature">{{ val.super_calls.0.signature }}</span>
+                      {% endif %}
+                    {% endif %}
+
+                  {% endif %}
+                </td>
+
+                <td class="djcbv-show-arguments" data-cbv-col="file-path">
+                  <code>{{ val.path }}</code>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <h4>No CBV method call chain</h4>
+      {% endif %}
+      
+      {% if mro %}
+        <h4>Ancestors (MRO)</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Class</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for cls_dict in mro %}
+              <tr>
+                <td>{{ forloop.counter0 }}</td>
+                <td>
+                  {% if cls_dict.ccbv_link %}
+                      <a href="{{ cls_dict.ccbv_link }}" target="_blank">
+                        <span class="djcbv-method {% if forloop.first %}bold{% endif %}">{{ cls_dict.name }}</span>
+                      </a>
+                  {% else %}
+                      <span class="djcbv-method {% if forloop.first %}bold{% endif %}">{{ cls_dict.name }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <h4>No Ancestors (MRO)</h4>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<style>
+  #djCbv .djcbv-hidden {
+    display: none !important;
+  }
+
+  #djCbv, #djCbv a, #djCbv ul, #djCbv li, #djCbv h4, #djCbv h1, #djCbv table, #djCbv tbody, #djCbv thead, #djCbv tfoot, #djCbv tr, #djCbv th, #djCbv td, #djCbv div, #djCbv span,
+  #djCbv #djCbvShowPanelButton
+  {
+    margin: 0;
+    padding: 0;
+    line-height: 1.5 !important;
+    color: #4a4a4a;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: sans-serif !important;
+    text-decoration: none;
+    list-style: none;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  #djCbv a, #djCbv a > span {
+    color: #485fc7;
+    cursor: pointer;
+  }
+
+  #djCbv h4 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 30px 0 0 0;
+    color: #334155;
+  }
+
+  #djCbv #djCbvHandle {
+    position: fixed;
+    transform: translateY(-100%) rotate(-90deg);
+    transform-origin: right bottom;
+    top: 40%;
+    right: 0;
+    z-index: 1;
+    opacity: 0.75;
+    border: 1px solid #282828;
+    border-bottom: 0;
+  }
+
+  #djCbv #djCbvShowPanelButton:hover {
+    background-color: #111;
+    border-color: #38bdf8;
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  #djCbv #djCbvShowPanelButton {
+    padding: 0 5px;
+    border: 5px solid #7dd3fc;
+    border-bottom-width: 0;
+    color: #fff;
+    font-size: 22px !important;
+    font-weight: bold;
+    background-color: #282828;
+    opacity: 0.5;
+    display: inline-flex;
+    align-items: baseline;
+  }
+
+  #djCbvShowPanelButton > span {
+    color: #7dd3fc;
+    font-weight: bold;
+  }
+
+  #djCbvShowPanelButton > span#djCbvShowPanelButtonD {
+    font-size: 22px;
+  }
+
+  #djCbvShowPanelButton > #djCbvShowPanelButtonJ {
+    font-size: 16px;
+  }
+
+  #djCbv .djcbv-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1000000000;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+  }
+
+  #djCbv .djcbv-panel-content {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: auto;
+    padding: 5px 20px 0 20px;
+    overflow-y: auto;
+    line-height: 1.5em;
+    vertical-align: baseline;
+    margin-bottom: 30px;
+  }
+
+  #djCbv .djcbv-panel-content table {
+    border: 2px solid #e2e8f0;
+    border-collapse: collapse;
+    width: 100%;
+    background-color: #fff;
+    display: table;
+    margin-top: 0.8em;
+    overflow: auto;
+  }
+
+  #djCbv .djcbv-panel-content thead th, #djCbv .djcbv-panel-content tbody td {
+    padding: 4px 6px 4px 3px;
+  }
+
+  #djCbv .djcbv-panel-content thead th {
+    font-weight: bold;
+    color: #334155;
+  }
+
+  #djCbv .djcbv-panel-content tbody td {
+    border: 1px solid #fff;
+  }
+
+  #djCbv .djcbv-panel-content tbody > tr:nth-child(odd) {
+    background-color: #f1f5f9;
+  }
+
+  #djCbv .cbvParentToggleButton, #djCbv .cbvColCollapse {
+    box-sizing: content-box;
+    padding: 0;
+    border: 1px solid #999;
+    border-radius: 0;
+    width: 12px;
+    color: #777;
+    background: linear-gradient(to bottom, #fff, #dcdcdc);
+    line-height: 1;
+  }
+
+  #djCbv .djcbv-signature {
+    color: #545454;
+    font-weight: 300;
+    font-family: Consolas,"courier new";
+  }
+
+  #djCbv .djcbv-panel-title {
+    position: absolute;
+    background-color: #0ea5e9;
+    color: #666;
+    padding-left: 20px;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #djCbv code {
+    font-family: monospace;
+    color: #db2777 !important;
+  }
+
+  #djCbv .djcbv-panel-title code {
+    padding: .25em .5em .25em;
+  }
+
+  #djCbv table code {
+    display: block;
+    font-family: Consolas, Monaco, "Bitstream Vera Sans Mono", "Lucida Console", monospace;
+    font-size: 12px;
+    white-space: pre;
+    overflow: auto;
+    background-color: inherit;
+  }
+
+  #djCbv .djcbv-panel-title h1 {
+    font-size: 24px;
+    color: white;
+    font-weight: normal;
+  }
+
+  #djCbv .djcbv-panel-title h1 code {
+    background-color: white;
+    color: #8e8e8e;
+    font-weight: bold;
+    border-radius: 3px;
+    font-size: 21px;
+  }
+
+  #djCbv #djCbvExitPanel {
+    margin: 0 20px;
+    border: 6px solid #ddd;
+    border-radius: 50%;
+    background: white;
+    color: #ddd;
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 16px;
+    padding: 5px;
+    text-align: center;
+    box-sizing: content-box;
+    width: 16px;
+  }
+
+  #djCbv #djCbvExitPanel:hover {
+    background: #ff9ed9;
+  }
+
+  #djCbv .cbvLogsButton {
+    cursor: pointer;
+  }
+
+  #djCbv .bold {
+    font-weight: 700;
+  }
+</style>
+
+<script>
+  const toolbarHandler = document.querySelector('#djCbv #djCbvHandle');
+  const logContainer = document.querySelector("#djCbv .djcbv-panel");
+  const djCbvExitPanelBtn = document.querySelector("#djCbv #djCbvExitPanel");
+  const columnCollapseButtons = document.querySelectorAll('.cbvColCollapse');
+  const parentToggleButtons = document.querySelectorAll('.cbvParentToggleButton');
+
+
+  // Wire up event listeners
+  toolbarHandler.addEventListener('click', toggleLogVisibility);
+
+  djCbvExitPanelBtn.addEventListener('click', toggleLogVisibility);
+
+  columnCollapseButtons.forEach(colCollapseButton => {
+    colCollapseButton.addEventListener('click', toggleColumnVisibility);
+  })
+
+  parentToggleButtons.forEach(toggleButton => {
+    toggleButton.addEventListener('click', toggleChildLogsVisibility)
+  });
+
+
+  // Event listener functions
+  function toggleLogVisibility() {
+    logContainer.classList.toggle('djcbv-hidden');
+  }
+
+  function toggleColumnVisibility(e) {
+    colName = e.currentTarget.dataset.cbvCol;
+    tableCells = document.querySelectorAll(`#djCbv .cbvLogEntry td[data-cbv-col="${colName}"]`);
+
+    tableCells.forEach(cell => {
+      children = cell.children;
+      if (children.length > 0) {
+        Array.from(children).forEach(child => child.classList.toggle('djcbv-hidden'));
+      }
+    });
+    
+    // // update current target's toggle button
+    if (e.currentTarget.innerHTML === '-') {
+      e.currentTarget.innerHTML = '+';
+    }
+
+    else if (e.currentTarget.innerHTML === '+') {
+      e.currentTarget.innerHTML = '-';
+    }
+  }
+
+  function toggleChildLogsVisibility(e){
+    const parent = e.currentTarget.closest('tr');
+    let parentOrder = parent.dataset.cbvOrder;
+    let parentTabIndex = parent.dataset.cbvTabIndex;
+    const descendantLogs = document.querySelectorAll(`tr.${parent.id}`);
+
+    // hide all descendents!
+    if (e.currentTarget.innerHTML === '-') {
+      descendantLogs.forEach(el => {
+        el.classList.add('djcbv-hidden');
+        let hasButton = el.querySelector('.cbvParentToggleButton');
+        hasButton ? hasButton.innerHTML = '+' : null;
+      });
+    }
+    // show all descendents!
+    else if (e.currentTarget.innerHTML === '+') {
+      descendantLogs.forEach(el => {
+        el.classList.remove('djcbv-hidden');
+        let hasButton = el.querySelector('.cbvParentToggleButton');
+        hasButton ? hasButton.innerHTML = '-' : null;
+      });
+    }
+
+    // update current target's toggle button
+    if (descendantLogs[0].classList.contains('djcbv-hidden')) {
+      e.currentTarget.innerHTML = '+';
+    }
+    else {
+      e.currentTarget.innerHTML = '-';
+    }
+  }
+</script>

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Create{% endblock %}
+
+{% block content %}
+
+<h1>{% if object %}Update{% else %}Create{% endif %} Book</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="columns">
+        <div class="column is-half">
+            <div class="field">
+                <label class="label">Name</label>
+                <div class="control">
+                    <input class="input" type="text" name="{{ form.name.name }}" value="{{ object.name|default:'' }}"
+                        placeholder="Harry Potter and the Half-Blood Prince">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Published Date</label>
+                <div class="control">
+                    <input class="input" type="text" name="{{ form.published.name }}" placeholder="2020-01-01"
+                        value="{{ object.published|date:'Y-m-d'|default:'' }}">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Author</label>
+                <div class="control">
+                    <div class="select">
+                        <select name="{{ form.author.name }}">
+                            {% for choice in form.fields.author.choices %}
+
+                            {% if object and object.author.name == choice.1 %}
+                            <option value="{{ choice.0 }}" selected>{{ choice.1 }}</option>
+                            {% else %}
+                            <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <a href="{% url 'books:author_create' %}">
+                    <p class="help">or create new author</p>
+                </a>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    {% if object %}
+                    <button class="button is-link" type="submit">Update Book</button>
+                    {% else %}
+                    <button class="button is-link" type="submit">Create Book</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

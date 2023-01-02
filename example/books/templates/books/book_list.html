@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Book List{% endblock %}
+
+{% block content %}
+
+<h1>Book List</h1>
+<div class="buttons">
+    <a href="{% url 'books:book_create' %}">
+        <button class="button is-info">Add Book</button>
+    </a>
+</div>
+
+<table class="table">
+    <thead>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Date Published</th>
+        <th>ISBN</th>
+        <th></th>
+        <th></th>
+    </thead>
+
+    <tbody>
+        {% for book in object_list %}
+        <tr>
+            <td>
+                <a href="{{ book.get_absolute_url }}">
+                    {{ book.name }}
+                </a>
+            </td>
+            <td>{{ book.author.name }}</td>
+            <td>{{ book.published }}</td>
+            <td>{{ book.isbn }}</td>
+            <td>
+                <a href="{% url 'books:book_edit' book.pk %}">
+                    <span class="icon has-text-success"><i class="fas fa-edit"></i></span>
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'books:book_delete' book.pk %}">
+                    <span class="icon has-text-danger"><i class="fas fa-minus-circle"></i></span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
