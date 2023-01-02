@@ -3,15 +3,25 @@
 </h1>
 
 <div align="center">
-
+<a href="https://pypi.org/project/django-cbv-inspect/">
+    <img src="https://img.shields.io/pypi/v/django-cbv-inspect?color=blue" alt="PyPI"/>
+</a>
 <a href="https://github.com/sjbitcode/django-cbv-inspect/actions/workflows/test.yml">
     <img src="https://github.com/sjbitcode/django-cbv-inspect/actions/workflows/test.yml/badge.svg?branch=master&event=push" alt="Test">
 </a>
-    <a href="https://codecov.io/gh/sjbitcode/django-cbv-inspect">
-        <img src="https://codecov.io/gh/sjbitcode/django-cbv-inspect/branch/main/graph/badge.svg?token=wAjvQLGtpd" alt="codecov">
-    </a>
+<a href="https://codecov.io/gh/sjbitcode/django-cbv-inspect" > 
+    <img src="https://codecov.io/gh/sjbitcode/django-cbv-inspect/branch/master/graph/badge.svg?token=wAjvQLGtpd"/> 
+</a>
+<a href="https://pypi.org/project/django-cbv-inspect/">
+    <img src="https://img.shields.io/pypi/pyversions/django-cbv-inspect" alt="python-versions">
+</a>
+<a href="https://pypi.org/project/django-cbv-inspect/">
+    <img src="https://img.shields.io/pypi/frameworkversions/django/django-cbv-inspect.svg" alt="django-versions">
+</a>
 </div>
+
 <br>
+
 <div align="center">
     <p>A Django app to help inspect all class-based views within your Django project 🔎 ✨ </p>
     Inspired by django-debug-toolbar ❤️
