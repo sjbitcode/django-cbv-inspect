@@ -52,4 +52,6 @@ jobs:
 
       - name: Run tests
         run: coverage run -m django test && coverage report
-          
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
