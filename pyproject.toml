@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-cbv-inspect"
-version = "0.1.14"
+version = "0.1.15"
 description = "A tool to inspect Django class-based views."
 authors = [
     { name="Sangeeta Jadoonanan", email="sjbitcode@gmail.com" }
