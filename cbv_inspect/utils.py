@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import functools
 import inspect
+import logging
 import re
 from dataclasses import dataclass, field
-import logging
 from pprint import pformat
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
