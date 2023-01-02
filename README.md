@@ -23,7 +23,7 @@
 <br>
 
 <div align="center">
-    <p>A Django app to help inspect all class-based views within your Django project 🔎 ✨ </p>
+    <p>A tool to help inspect all class-based views within your Django project 🔎 ✨ </p>
     Inspired by django-debug-toolbar ❤️
 </div>
 
