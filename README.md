@@ -62,11 +62,16 @@ MIDDLEWARE = [
 ]
 ```
 
-4. **Prerequisites**
-    
-    In your `TEMPLATES` settings within your Django settings module, make sure
-   1. the `BACKEND` setting is `""django.template.backends.django.DjangoTemplates""`
-   2. the `APP_DIRS` setting is `True`
+4. Make sure your `TEMPLATES` settings uses the `DjangoTemplates` backend with `APP_DIRS` set to `True`
+```python
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "APP_DIRS": True,
+        ...
+    }
+]
+```
 
 <br>
 
@@ -133,13 +138,11 @@ The `django-cbv-inspect` toolbar has three main sections:
 2. CBV method call chain
 3. MRO classes
 
-<br>
 
 ### View information
 
 This section shows high level information about the class-based view, request, and url.
 
-<br>
 
 ### CBV method call chain
 
@@ -152,8 +155,6 @@ It shows:
 - all resolved `super()` calls defined in the method
 - module location
 
-
-<br>
 
 ### MRO classes
 This section lists all MRO classes of the current class-based view class. 
